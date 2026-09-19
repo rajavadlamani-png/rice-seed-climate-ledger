@@ -1,55 +1,75 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Rice Seed Climate Ledger v7.0 — Real Data Import</title>
+<title>Rice Seed Climate Ledger v7.1 — Import & Validation</title>
 <style>
-:root{--g:#18552e;--bg:#f4f7f3;--ink:#193223;--muted:#65736a;--line:#d8e1da;--card:#fff;--amber:#fff6da;--red:#fff0ee}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif}.wrap{max-width:1180px;margin:auto}
-header{background:linear-gradient(135deg,#123c23,#28663a);color:#fff;padding:30px 20px}.brand{font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.85}h1{font-size:32px;margin:8px 0}.hero{line-height:1.5;max-width:920px}
-main{padding:18px 0 50px}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:20px;margin:15px 0;box-shadow:0 5px 20px #1832230b}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px}
-label{font-size:13px;font-weight:750;display:block;margin-bottom:6px}input,textarea{width:100%;padding:10px;border:1px solid #cbd7ce;border-radius:8px;font-size:14px}textarea{min-height:150px;font-family:ui-monospace,monospace}
-button{border:0;border-radius:8px;padding:10px 15px;font-weight:800;cursor:pointer}.primary{background:var(--g);color:#fff}.secondary{background:#e8efe9;color:var(--g)}
-.note{background:var(--amber);border-left:4px solid #c79824;padding:12px 15px;font-size:13px;line-height:1.5}.good{background:#edf7ee;border-left:4px solid var(--g)}.alert{background:var(--red);border-left:4px solid #b74a3d}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.kpi{background:#edf6ee;border-radius:12px;padding:14px}.num{font-size:24px;font-weight:850;margin-top:4px}.small{font-size:11px;color:var(--muted)}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f1f5f2}.scroll{overflow:auto}.tag{display:inline-block;background:#eaf4eb;color:var(--g);padding:5px 9px;border-radius:18px;font-size:11px;font-weight:850}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
-</style></head><body>
-<header><div class="wrap"><div class="brand">Rice Seed Climate Ledger • v7.0</div><h1>Real-Data Import & Validation</h1>
-<div class="hero">Paste CSV exports from production, energy, processing or lot records. The validator checks structure, mass balance, plot completeness and evidence coverage before a calculation is treated as ready.</div></div></header>
+body{margin:0;background:#f4f7f3;color:#193223;font-family:Arial,sans-serif}.wrap{max-width:1100px;margin:auto;padding:20px}
+header{background:#18552e;color:white;padding:28px 20px}h1{margin:8px 0}.card{background:white;border:1px solid #d8e1da;border-radius:14px;padding:20px;margin:16px 0}.note{background:#fff6da;padding:14px;border-left:4px solid #c79824}.filebox{border:2px dashed #b9c9bd;padding:18px;border-radius:10px}.status{font-size:13px;color:#65736a;margin-top:8px}textarea{width:100%;min-height:130px;margin-top:10px;font-family:monospace;box-sizing:border-box}.btn{margin-top:12px;padding:10px 15px;border:0;border-radius:8px;font-weight:bold;cursor:pointer}.primary{background:#18552e;color:white}.secondary{background:#e8efe9;color:#18552e}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kpi{background:#edf6ee;padding:14px;border-radius:10px}.num{font-size:24px;font-weight:bold}.good{background:#edf7ee;padding:12px;border-left:4px solid #18552e}@media(max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head><body>
+<header><div class="wrap"><small>RICE SEED CLIMATE LEDGER • PUBLIC BETA v7.1</small><h1>Real-Data Import & Validation</h1>
+<div>Upload the completed v7 Excel template or CSV files. The validator checks structure, plot completeness, evidence IDs and basic mass balance.</div></div></header>
 <main class="wrap">
-<div class="card note"><b>Recommended workflow:</b> Download the v7 Excel template, populate the actual season, then use the same field structure here for validation. Do not paste confidential farmer or employee personal data.</div>
-<div class="card"><span class="tag">1 • Import</span><h2>Paste Lot Master CSV</h2>
-<label>CSV text</label><textarea id="csvLot">Seed Lot ID,Crop,Variety/Hybrid,Season,State,District,Production Start,Production End,Harvested Seed kg,Finished Saleable Seed kg,Evidence ID,Data Class,Notes
-RSL-2026-001,Rice,USRH-XX,Kharif 2026,,,,,96000,86000,EVID-001,Recorded,Illustrative</textarea>
-<div class="actions"><button class="primary" onclick="validateAll()">Validate dataset</button></div></div>
-<div class="card"><span class="tag">2 • Plot data</span><h2>Paste Plot Data CSV</h2>
-<textarea id="csvPlot">Seed Lot ID,Plot ID,Village,District,Area ha,Crop Days,Water Regime,Pre-season Flooding,Drainage / AWD Events,Urea kg/ha,DAP kg/ha,MOP kg/ha,Other N kg/ha,Organic Amendment,Residue Fate,Crop Protection kg/ha,Biological Intervention,Evidence ID,Data Class,Notes
-RSL-2026-001,P1,,,12,112,Multiple drainage / AWD,No,4,160,50,0,0,None,Incorporated,0,Yes,EVID-P1,Recorded,Illustrative
-RSL-2026-001,P2,,,18,112,Single drainage,No,1,180,50,0,0,None,Removed,0,No,EVID-P2,Recorded,Illustrative
-RSL-2026-001,P3,,,10,112,Continuous flooding,No,0,200,50,0,0,None,Incorporated,0,Yes,EVID-P3,Recorded,Illustrative</textarea></div>
-<div class="card"><span class="tag">3 • Validation report</span><div id="report"></div></div>
+<div class="card note"><b>Important:</b> Do not upload confidential farmer or employee personal data. This validator is a structural QA tool; it does not certify carbon factors or methodology.</div>
+
+<div class="card"><h2>1. Import completed Excel workbook</h2>
+<div class="filebox"><b>Choose the v7 Excel template (.xlsx)</b><br><input id="xlsx" type="file" accept=".xlsx,.xls" onchange="xlsxImport(this.files[0])"><div id="xs" class="status">No workbook selected.</div></div></div>
+
+<div class="card"><h2>2. CSV alternative — Lot Master</h2>
+<div class="filebox"><b>Choose Lot Master CSV</b><br><input type="file" accept=".csv,text/csv" onchange="csvImport(this.files[0],'lot')"><div id="ls" class="status">No CSV selected.</div></div>
+<textarea id="lot" placeholder="Lot Master CSV will appear here"></textarea></div>
+
+<div class="card"><h2>3. CSV alternative — Plot Data</h2>
+<div class="filebox"><b>Choose Plot Data CSV</b><br><input type="file" accept=".csv,text/csv" onchange="csvImport(this.files[0],'plot')"><div id="ps" class="status">No CSV selected.</div></div>
+<textarea id="plot" placeholder="Plot Data CSV will appear here"></textarea></div>
+
+<div class="card"><button class="btn primary" onclick="validate()">Validate imported dataset</button>
+<button class="btn secondary" onclick="sample()">Load illustrative sample</button></div>
+
+<div class="card"><h2>4. Validation report</h2><div id="report">Import data and click Validate.</div></div>
 </main>
 <script>
-function csv(s){let lines=s.trim().split(/\r?\n/);let head=lines[0].split(',').map(x=>x.trim());return lines.slice(1).filter(Boolean).map(line=>{let a=line.split(',');let o={};head.forEach((h,i)=>o[h]=(a[i]||'').trim());return o})}
-function validateAll(){
-let lot=csv(document.getElementById('csvLot').value),p=csv(document.getElementById('csvPlot').value),issues=[],passes=[];
-if(!lot.length)issues.push('Lot Master has no records.');else passes.push('Lot Master contains '+lot.length+' record(s).');
-const req=['Seed Lot ID','Plot ID','Area ha','Crop Days','Water Regime','Urea kg/ha','DAP kg/ha','Evidence ID'];
-req.forEach(x=>{if(!(x in (p[0]||{})))issues.push('Plot Data missing required column: '+x)});
-p.forEach((r,i)=>{
-if(!(Number(r['Area ha'])>0))issues.push('Plot '+(r['Plot ID']||i+1)+': area missing or <= 0.');
-if(!(Number(r['Crop Days'])>0))issues.push('Plot '+(r['Plot ID']||i+1)+': crop days missing or <= 0.');
-if(!r['Water Regime'])issues.push('Plot '+(r['Plot ID']||i+1)+': water regime missing.');
-if(!r['Evidence ID'])issues.push('Plot '+(r['Plot ID']||i+1)+': Evidence ID missing.');
-});
-const total=p.reduce((a,r)=>a+(Number(r['Area ha'])||0),0);
-if(total>0)passes.push('Plot area total: '+total.toFixed(2)+' ha.');
-const lotId=(lot[0]||{})['Seed Lot ID'];if(lotId && p.some(r=>r['Seed Lot ID']!==lotId))issues.push('Plot Seed Lot ID does not consistently match Lot Master.');
-if(lot[0]){
-let h=Number(lot[0]['Harvested Seed kg']),s=Number(lot[0]['Finished Saleable Seed kg']);
-if(h>0&&s>0){if(s<=h)passes.push('Mass balance: saleable seed <= harvested seed.');else issues.push('Mass balance failure: saleable seed exceeds harvested seed.');}
-else issues.push('Lot Master harvested/saleable seed quantities missing.');
+const lotSample=`Seed Lot ID,Crop,Variety/Hybrid,Season,State,District,Production Start,Production End,Harvested Seed kg,Finished Saleable Seed kg,Evidence ID,Data Class,Notes
+RSL-2026-001,Rice,USRH-XX,Kharif 2026,,,,,96000,86000,EVID-001,Recorded,Illustrative`;
+const plotSample=`Seed Lot ID,Plot ID,Village,District,Area ha,Crop Days,Water Regime,Pre-season Flooding,Drainage / AWD Events,Urea kg/ha,DAP kg/ha,MOP kg/ha,Other N kg/ha,Organic Amendment,Residue Fate,Crop Protection kg/ha,Biological Intervention,Evidence ID,Data Class,Notes
+RSL-2026-001,P1,,,12,112,Multiple drainage / AWD,No,4,160,50,0,0,None,Incorporated,0,Yes,EVID-P1,Recorded,Illustrative
+RSL-2026-001,P2,,,18,112,Single drainage,No,1,180,50,0,0,None,Removed,0,No,EVID-P2,Recorded,Illustrative
+RSL-2026-001,P3,,,10,112,Continuous flooding,No,0,200,50,0,0,None,Incorporated,0,Yes,EVID-P3,Recorded,Illustrative`;
+
+function parseCSV(s){
+ let rows=[],r=[],c="",q=false;
+ for(let i=0;i<s.length;i++){let x=s[i],n=s[i+1];
+  if(x=='"'&&q&&n=='"'){c+='"';i++;continue} if(x=='"'){q=!q;continue}
+  if(x==','&&!q){r.push(c.trim());c="";continue}
+  if((x=='\n'||x=='\r')&&!q){if(x=='\r'&&n=='\n')i++;r.push(c.trim());c="";if(r.some(v=>v))rows.push(r);r=[];continue} c+=x;
+ }
+ if(c||r.length){r.push(c.trim());rows.push(r)} if(!rows.length)return[];
+ return rows.slice(1).map(a=>{let o={};rows[0].forEach((h,i)=>o[h]=(a[i]||"").trim());return o});
 }
-document.getElementById('report').innerHTML=`<div class="kpis"><div class="kpi">Plots<div class="num">${p.length}</div></div><div class="kpi">Area<div class="num">${total.toFixed(1)} ha</div></div><div class="kpi">Passes<div class="num">${passes.length}</div></div><div class="kpi">Open issues<div class="num">${issues.length}</div></div></div>
-<h3>Passes</h3><ul>${passes.map(x=>'<li>'+x+'</li>').join('')}</ul><h3>Open issues</h3>${issues.length?'<ul>'+issues.map(x=>'<li>'+x+'</li>').join('')+'</ul>':'<div class="card good"><b>No structural issues detected in the imported sample.</b></div>'}
-<h3>Interpretation</h3><p class="small">This validator checks data structure and basic consistency only. It does not certify the carbon factors, methodology applicability or evidence authenticity.</p>`;
+function esc(v){v=String(v??"");return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function toCSV(rows){if(!rows.length)return"";let h=Object.keys(rows[0]);return [h.map(esc).join(","),...rows.map(r=>h.map(k=>esc(r[k])).join(","))].join("\n")}
+function csvImport(file,type){if(!file)return;let r=new FileReader();r.onload=e=>{document.getElementById(type).value=e.target.result;document.getElementById(type=='lot'?'ls':'ps').textContent="Loaded "+file.name};r.readAsText(file)}
+function xlsxImport(file){
+ if(!file)return;
+ let r=new FileReader();r.onload=e=>{try{
+  let wb=XLSX.read(e.target.result,{type:"array"}),a=wb.Sheets["Lot Master"],b=wb.Sheets["Plot Data"];
+  if(!a||!b)throw Error('Workbook must contain sheets named "Lot Master" and "Plot Data".');
+  let lot=XLSX.utils.sheet_to_json(a,{defval:""}),plot=XLSX.utils.sheet_to_json(b,{defval:""});
+  document.getElementById("lot").value=toCSV(lot);document.getElementById("plot").value=toCSV(plot);
+  document.getElementById("xs").textContent="Imported "+file.name+" — "+lot.length+" Lot Master row(s), "+plot.length+" Plot Data row(s).";
+ }catch(err){document.getElementById("xs").textContent="Import failed: "+err.message}};r.readAsArrayBuffer(file)
 }
-validateAll();
+function sample(){document.getElementById("lot").value=lotSample;document.getElementById("plot").value=plotSample;document.getElementById("ls").textContent="Illustrative sample loaded.";document.getElementById("ps").textContent="Illustrative sample loaded.";validate()}
+function validate(){
+ let lot=parseCSV(document.getElementById("lot").value),p=parseCSV(document.getElementById("plot").value),bad=[],ok=[];
+ if(!lot.length)bad.push("Lot Master has no records.");else ok.push("Lot Master: "+lot.length+" record(s).");
+ let req=["Seed Lot ID","Plot ID","Area ha","Crop Days","Water Regime","Urea kg/ha","DAP kg/ha","Evidence ID"];
+ req.forEach(x=>{if(!(x in (p[0]||{})))bad.push("Plot Data missing column: "+x)});
+ p.forEach((r,i)=>{if(!(Number(r["Area ha"])>0))bad.push("Plot "+(r["Plot ID"]||i+1)+": area missing or <= 0.");if(!(Number(r["Crop Days"])>0))bad.push("Plot "+(r["Plot ID"]||i+1)+": crop days missing or <= 0.");if(!r["Water Regime"])bad.push("Plot "+(r["Plot ID"]||i+1)+": water regime missing.");if(!r["Evidence ID"])bad.push("Plot "+(r["Plot ID"]||i+1)+": Evidence ID missing.")});
+ let area=p.reduce((a,r)=>a+(Number(r["Area ha"])||0),0);if(area)ok.push("Plot area total: "+area.toFixed(2)+" ha.");
+ let ids=new Set(lot.map(r=>r["Seed Lot ID"]).filter(Boolean));p.forEach(r=>{if(r["Seed Lot ID"]&&!ids.has(r["Seed Lot ID"]))bad.push("Plot references unknown Lot ID: "+r["Seed Lot ID"])});
+ lot.forEach(r=>{let h=Number(r["Harvested Seed kg"]),s=Number(r["Finished Saleable Seed kg"]);if(h>0&&s>0){if(s<=h)ok.push("Mass balance "+r["Seed Lot ID"]+": PASS.");else bad.push("Mass balance "+r["Seed Lot ID"]+": saleable seed exceeds harvested seed.");}else bad.push("Lot "+(r["Seed Lot ID"]||"unknown")+": harvested/saleable quantities missing.")});
+ document.getElementById("report").innerHTML='<div class="kpis"><div class="kpi">Plots<div class="num">'+p.length+'</div></div><div class="kpi">Area<div class="num">'+area.toFixed(1)+' ha</div></div><div class="kpi">Passes<div class="num">'+ok.length+'</div></div><div class="kpi">Issues<div class="num">'+bad.length+'</div></div></div><h3>Passes</h3><ul>'+ok.map(x=>"<li>"+x+"</li>").join("")+'</ul><h3>Open issues</h3>'+(bad.length?"<ul>"+bad.map(x=>"<li>"+x+"</li>").join("")+"</ul>":'<div class="good"><b>No structural issues detected.</b></div>')+'<p class="status">Structural QA only. This does not certify emission factors, methodology applicability or evidence authenticity.</p>';
+}
+sample();
 </script></body></html>
