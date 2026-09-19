@@ -1,28 +1,1025 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Rice Seed Climate Ledger — Public Beta v7.0. An open field-to-finished-seed climate accounting and validation framework for Indian rice seed production.">
-<meta property="og:title" content="Rice Seed Climate Ledger — Public Beta v7.0">
-<meta property="og:description" content="Test, challenge and improve an open field-to-finished-seed climate accounting framework for Indian rice seed production.">
-<title>Rice Seed Climate Ledger — Public Beta v7.0</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANVORA — Agricultural Climate Intelligence | Raja Vadlamani</title>
 <style>
-:root{--g:#18552e;--g2:#28663a;--bg:#f4f7f3;--ink:#193223;--muted:#64746a;--line:#d8e1da;--card:#fff;--amber:#fff6da}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif;line-height:1.55}.wrap{max-width:1120px;margin:auto;padding:0 20px}
-header{background:linear-gradient(135deg,#123c23,#28663a);color:#fff;padding:54px 0 48px}.eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:12px;opacity:.82;font-weight:800}h1{font-size:clamp(34px,5vw,58px);line-height:1.05;margin:12px 0 16px;max-width:850px}header p{font-size:18px;max-width:820px;color:#eaf3eb}.beta{display:inline-block;margin-top:14px;padding:7px 11px;border:1px solid #b9d2bf;border-radius:20px;font-size:12px;font-weight:800}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}.btn{display:inline-block;text-decoration:none;border-radius:9px;padding:11px 16px;font-weight:800}.primary{background:#fff;color:var(--g)}.ghost{border:1px solid #b9d2bf;color:#fff}
-main{padding:26px 0 60px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:21px;box-shadow:0 5px 20px #1832230b;margin:16px 0}.card h2{margin-top:0}.tag{display:inline-block;background:#eaf4eb;color:var(--g);padding:5px 9px;border-radius:18px;font-size:11px;font-weight:850}.note{background:var(--amber);border-left:4px solid #c79824}.quote{font-size:20px;font-weight:750}.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.two{grid-template-columns:1fr}}ul{padding-left:22px}.muted{color:var(--muted);font-size:14px}.status{display:inline-block;padding:4px 8px;border-radius:14px;background:#eef3ef;font-size:12px;font-weight:750}footer{border-top:1px solid var(--line);padding:25px 0;color:var(--muted);font-size:13px}
-</style></head><body>
-<header><div class="wrap"><div class="eyebrow">Rice Seed Climate Ledger</div><h1>Field-to-Finished-Seed Climate Accounting</h1><p>Public Beta v7.0 — an open framework for testing, challenging and improving climate accounting across the physical journey of Indian rice seed.</p><span class="beta">PUBLIC BETA • SEPTEMBER 2026</span><div class="actions"><a class="btn primary" href="validator.html">Open the Data Validator</a><a class="btn ghost" href="Rice_Seed_Climate_Ledger_v7_Real_Data_Import_Template.xlsx">Download v7 Excel Template</a></div></div></header>
-<main><div class="wrap">
-<div class="card note"><b>This is deliberately a public beta.</b> It is not presented as a finished carbon standard or verified carbon-credit methodology. The purpose is to expose the framework to practitioners, researchers, seed companies, agronomists and sustainability professionals so that they can test assumptions, identify omissions and improve the next version.</div>
-<div class="grid">
-<div class="card"><span class="tag">Scope</span><h2>What is covered?</h2><p>Parent seed → rice seed production field → harvest → drying → processing → storage → packaging → finished saleable seed.</p><p class="muted">Downstream commercial grain production is outside v1/v7 system boundary.</p></div>
-<div class="card"><span class="tag">Core metric</span><h2>What is calculated?</h2><p><b>kg CO₂e per kg of finished saleable seed</b>, with supporting views for total footprint, area intensity, methane contribution, activity breakdown and baseline/scenario comparison.</p></div>
-<div class="card"><span class="tag">Validation</span><h2>What does v7 add?</h2><p>Real-data import structure, plot-level records, evidence IDs, mass-balance checks, data-confidence classification, factor governance and QA checks.</p></div>
+:root{--ink:#17302a;--muted:#61736d;--line:#dce7e2;--bg:#f5f8f6;--card:#fff;--accent:#176b52;--accent2:#dff1e9;--warn:#8a5a00;--danger:#a33a32;--ok:#176b52;--shadow:0 8px 28px rgba(18,52,42,.08)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink)}
+header{background:linear-gradient(135deg,#123e32,#176b52);color:#fff;padding:28px 24px}
+.wrap{max-width:1200px;margin:auto}.brand{font-size:28px;font-weight:800;letter-spacing:.08em}.sub{opacity:.88;margin-top:3px}.tag{margin-top:14px;font-size:13px;letter-spacing:.05em}
+nav{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}.nav{display:flex;gap:6px;overflow:auto;padding:8px 0}.nav button{border:0;background:transparent;padding:10px 13px;border-radius:8px;color:var(--muted);cursor:pointer;font-weight:650}.nav button.active,.nav button:hover{background:var(--accent2);color:var(--accent)}
+main{padding:24px 0 50px}.page{display:none}.page.active{display:block}
+.grid{display:grid;gap:16px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}h1,h2,h3{margin:0 0 8px}h1{font-size:25px}h2{font-size:18px}h3{font-size:15px}.muted{color:var(--muted)}.metric{font-size:28px;font-weight:800;margin-top:5px}.pill{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--accent2);color:var(--accent);font-size:12px;font-weight:700}.pill.warn{background:#fff2d5;color:var(--warn)}.pill.bad{background:#fde6e3;color:var(--danger)}
+button.primary,.btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer}.btn.secondary{background:#edf3f0;color:var(--ink)}.btn.danger{background:#a33a32}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;border-bottom:1px solid var(--line);padding:8px;vertical-align:top}th{color:var(--muted);font-size:12px;background:#fafcfb}
+textarea,input,select{width:100%;padding:9px;border:1px solid #cfdcd7;border-radius:7px;background:#fff;color:var(--ink)}label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:9px 0 4px}
+.notice{padding:12px;border-left:4px solid var(--accent);background:#eef7f3;border-radius:7px;margin:12px 0}.warning{border-color:#d89c2b;background:#fff8e9}.dangerbox{border-color:#a33a32;background:#fff0ee}
+.kicker{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--accent);font-weight:800;margin-bottom:6px}.step{display:flex;gap:10px;align-items:flex-start}.num{min-width:28px;height:28px;border-radius:50%;background:var(--accent2);color:var(--accent);display:grid;place-items:center;font-weight:800}
+.bar{height:9px;background:#e8efec;border-radius:99px;overflow:hidden}.bar>span{display:block;height:100%;background:var(--accent)}
+footer{border-top:1px solid var(--line);padding:18px 0;color:var(--muted);font-size:12px}
+@media(max-width:850px){.g4,.g3,.g2{grid-template-columns:1fr 1fr}}@media(max-width:560px){.g4,.g3,.g2{grid-template-columns:1fr}.brand{font-size:23px}}
+</style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script>
+function farmerQuickCalculate(){
+  const area = Math.max(0, Number(document.getElementById('fqArea').value)||0);
+  const days = Math.max(0, Number(document.getElementById('fqDays').value)||0);
+  const urea = Math.max(0, Number(document.getElementById('fqUrea').value)||0);
+  const dap = Math.max(0, Number(document.getElementById('fqDAP').value)||0);
+  const otherN = Math.max(0, Number(document.getElementById('fqOtherN').value)||0);
+  const seedT = Math.max(0, Number(document.getElementById('fqSeed').value)||0);
+  const water = document.getElementById('fqWater').value;
+
+  if(area<=0 || days<=0 || seedT<=0){
+    document.getElementById('farmerResult').innerHTML =
+      '<h2>Your ANVORA result</h2><p class="warn">Please enter positive values for area, crop duration and finished saleable seed.</p>';
+    return;
+  }
+
+  // Prototype-only factors. These are intentionally aligned with the current
+  // ANVORA prototype engine and are not certification factors.
+  const ch4Base = 120 * area;
+  const waterMult = {continuous:1.00, intermittent:0.80, awd:0.65, rainfed:0.55, unknown:1.00}[water] ?? 1.00;
+  const ch4 = ch4Base * waterMult * 27.2 / 1000;
+
+  const nKg = urea*0.46 + dap*0.18 + otherN*0.46;
+  const n2oN = nKg * 0.01;
+  const n2o = n2oN * (44/28) * 273 / 1000;
+
+  const energy = area * 18 * 0.7 / 1000;
+  const post = seedT * 45 / 1000;
+  const total = ch4 + n2o + energy + post;
+  const intensity = total * 1000 / (seedT * 1000);
+
+  const result = document.getElementById('farmerResult');
+  result.innerHTML =
+    '<h2>Your ANVORA result</h2>' +
+    '<div class="grid">' +
+      '<div><strong>Total footprint</strong><br><span class="metric">'+total.toFixed(2)+' tCO₂e</span></div>' +
+      '<div><strong>Intensity</strong><br><span class="metric">'+intensity.toFixed(4)+' kg CO₂e/kg finished seed</span></div>' +
+      '<div><strong>Farm area</strong><br>'+area.toFixed(2)+' ha</div>' +
+      '<div><strong>Finished seed</strong><br>'+seedT.toFixed(2)+' t</div>' +
+    '</div>' +
+    '<p><strong>Hotspots:</strong> CH₄ '+(ch4/total*100).toFixed(1)+'% · N₂O '+(n2o/total*100).toFixed(1)+'% · Energy '+(energy/total*100).toFixed(1)+'% · Post-harvest '+(post/total*100).toFixed(1)+'%</p>' +
+    '<p class="muted">Status: Provisional prototype estimate. Water-regime and emission factors are illustrative defaults and should not be treated as certified carbon accounting.</p>';
+}
+
+
+function refreshExecutiveViews(){
+  try{
+    const plots = (window.S && Array.isArray(S.plots)) ? S.plots : [];
+    const lots = (window.S && Array.isArray(S.lots)) ? S.lots : [];
+    const calc = (window.S && S.calc) ? S.calc : null;
+
+    const area = plots.reduce((a,p)=>a+(Number(p.area_ha)||0),0);
+    const seed = lots.reduce((a,l)=>a+(Number(l.finished_seed_t)||0),0);
+    const evidence = plots.length ? plots.filter(p=>String(p.evidence_id||'').trim()).length/plots.length*100 : 0;
+    const critical = plots.filter(p=>!String(p.evidence_id||'').trim()).length;
+    const review = plots.filter(p=>!(Number(p.area_ha)>0) || !(Number(p.crop_days)>0)).length;
+
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+    set('auditDataset', plots.length ? 'Loaded' : 'Not loaded');
+    set('auditEvidence', plots.length ? evidence.toFixed(1)+'%' : '—');
+    set('auditMass', lots.length ? 'See validation' : '—');
+    set('auditMRV', calc ? 'Calculated / review required' : '—');
+
+    set('acDataset', plots.length ? 'PASS' : 'REVIEW');
+    set('acLinkage', lots.length && plots.length ? 'REVIEW' : 'REVIEW');
+    set('acMass', lots.length ? 'REVIEW' : 'REVIEW');
+    set('acEvidence', plots.length && evidence>=90 ? 'PASS' : (plots.length ? 'REVIEW' : '—'));
+    set('acMethod', 'Controlled');
+    set('acRun', calc && calc.runId ? 'PASS' : '—');
+
+    const ex=[];
+    if(plots.length && evidence<100) ex.push('Evidence missing or incomplete for '+Math.round(100-evidence)+'% of plot records.');
+    if(review) ex.push(review+' plot record(s) require area/crop-duration review.');
+    if(!lots.length) ex.push('No lot records are currently loaded.');
+    document.getElementById('auditExceptions').innerHTML =
+      ex.length ? '<ul>'+ex.map(x=>'<li>'+x+'</li>').join('')+'</ul>' :
+      '<p> No current prototype exceptions detected by the dashboard checks.</p>';
+
+    set('misFarmers', plots.length ? plots.length : '—');
+    set('misArea', plots.length ? area.toFixed(2)+' ha' : '—');
+    set('misSeed', seed ? seed.toFixed(2)+' t' : '—');
+    set('misTotal', calc ? (calc.total/1000).toFixed(2)+' tCO₂e' : '—');
+    set('misIntensity', calc ? calc.intensity.toFixed(4)+' kg CO₂e/kg' : '—');
+    set('misEvidence', plots.length ? evidence.toFixed(1)+'%' : '—');
+    set('misCritical', critical);
+    set('misReview', review);
+    set('misMRV', calc ? 'Review required' : '—');
+    set('misRun', calc && calc.runId ? calc.runId : '—');
+
+    if(calc){
+      const total=calc.total||1;
+      document.getElementById('misHotspots').innerHTML =
+        '<ul>'+
+        '<li>CH₄: '+((calc.ch4/total)*100).toFixed(1)+'%</li>'+
+        '<li>N₂O: '+((calc.n2o/total)*100).toFixed(1)+'%</li>'+
+        '<li>Energy: '+((calc.energy/total)*100).toFixed(1)+'%</li>'+
+        '<li>Post-harvest: '+((calc.post/total)*100).toFixed(1)+'%</li>'+
+        '</ul>';
+      document.getElementById('misActions').innerHTML =
+        '<ul>'+
+        (evidence<100?'<li><strong>Evidence:</strong> close evidence gaps before relying on the dataset for formal review.</li>':'')+
+        (review?'<li><strong>Data quality:</strong> resolve area/crop-duration exceptions.</li>':'')+
+        '<li><strong>Climate:</strong> review the largest calculated source before selecting any intervention scenario.</li>'+
+        '</ul>';
+    }
+  }catch(e){}
+}
+
+
+function anvoraExportRows(sectionId){
+  const s=document.getElementById(sectionId); const rows=[];
+  if(!s)return rows;
+  s.querySelectorAll("table tr").forEach(tr=>{
+    const a=[...tr.querySelectorAll("th,td")].map(x=>x.innerText.trim());
+    if(a.length)rows.push(a);
+  });
+  return rows;
+}
+function anvoraDownloadText(text,name){
+  const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+}
+function anvoraExcel(rows,name){
+  if(!window.XLSX){alert("Excel export requires the workbook library to be available.");return;}
+  const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb,ws,"ANVORA Report");XLSX.writeFile(wb,name);
+}
+function exportLeadershipExcel(){
+  if(!window.XLSX){alert("Excel export requires the workbook library to be available.");return}
+  const wb=XLSX.utils.book_new();
+  const summary=[["ANVORA Leadership MIS"],["Generated",new Date().toLocaleString()],
+    ["Area covered",document.getElementById("misArea")?.innerText||"—"],
+    ["Finished seed",document.getElementById("misSeed")?.innerText||"—"],
+    ["Total footprint",document.getElementById("misTotal")?.innerText||"—"],
+    ["Intensity",document.getElementById("misIntensity")?.innerText||"—"],
+    ["Evidence coverage",document.getElementById("misEvidence")?.innerText||"—"],
+    ["Critical exceptions",document.getElementById("misCritical")?.innerText||"—"],
+    ["Review items",document.getElementById("misReview")?.innerText||"—"],
+    ["Calculation run",document.getElementById("misRun")?.innerText||"—"]];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summary),"Executive Summary");
+  const rows=plotEmissionRows();
+  const geo=aggregateRows(rows,"state").sort((a,b)=>b.totalT-a.totalT);
+  const hybrid=aggregateRows(rows,"hybrid").sort((a,b)=>b.totalT-a.totalT);
+  const geoRows=[["State","Area ha","Finished seed t","Total tCO2e","kg CO2e/kg","kg CO2e/ha","Evidence %"],...geo.map(x=>[x.name,x.area,x.finished/1000,x.totalT,x.intensity,x.areaIntensity,x.evidencePct])];
+  const hyRows=[["Hybrid / Variety","Area ha","Finished seed t","Total tCO2e","kg CO2e/kg","kg CO2e/ha","Evidence %"],...hybrid.map(x=>[x.name,x.area,x.finished/1000,x.totalT,x.intensity,x.areaIntensity,x.evidencePct])];
+  const detRows=[["Plot","Lot","State","District","Hybrid","Water regime","Area ha","Finished seed kg","Total kg CO2e","kg CO2e/kg","kg CO2e/ha","Evidence","Modeled reduction proxy kg"],...rows.map(r=>[r.plot,r.lot,r.state,r.district,r.hybrid,r.water,r.area,r.finished,r.totalKg,r.finished?r.totalKg/(r.finished*1000):0,r.area?r.totalKg/r.area:0,r.evidence?"Present":"Missing",r.reductionKg])];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(geoRows),"State");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(hyRows),"Hybrid");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(detRows),"Plot Detail");
+  XLSX.writeFile(wb,"ANVORA_Leadership_MIS.xlsx");
+}
+function exportAuditorExcel(){
+  if(!window.XLSX){alert("Excel export requires the workbook library to be available.");return}
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["ANVORA Auditor / Verifier Review"],["Generated",new Date().toLocaleString()],[],...anvoraExportRows("auditChecklist")]),"Controls");
+  const rows=plotEmissionRows();
+  const scr=[["Plot","State","District","Hybrid","Water regime","Evidence","Screen status","Baseline proxy tCO2e","Project tCO2e","Gross reduction proxy tCO2e","Additionality","Leakage","Uncertainty deduction"],...rows.map(r=>{
+    const has=!!r.evidence, improved=/awd|multiple drainage|single drainage|intermittent/i.test(r.water);
+    const status=has&&improved&&r.area>0&&r.days>0?"Potentially applicable":(r.area<=0||r.days<=0||!has?"Review required":"Not applicable on current screen");
+    return [r.plot,r.state,r.district,r.hybrid,r.water,has?"Present":"Missing",status,r.baseKg/1000,r.totalKg/1000,r.reductionKg/1000,"Not assessed","Not assessed","Not assessed"];
+  })];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(scr),"Methodology Screen");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Plot","Lot","State","District","Hybrid","Area ha","Finished seed kg","Evidence","Total kg CO2e"],...rows.map(r=>[r.plot,r.lot,r.state,r.district,r.hybrid,r.area,r.finished,r.evidence?"Present":"Missing",r.totalKg])]),"Plot Evidence");
+  XLSX.writeFile(wb,"ANVORA_Auditor_Review.xlsx");
+}
+function anvoraPDF(sectionId,title,file){
+  if(!window.jspdf){alert("PDF library is unavailable. Use Print / Save PDF instead.");return;}
+  const {jsPDF}=window.jspdf,doc=new jsPDF({unit:"pt",format:"a4"});
+  doc.setFontSize(20);doc.text(title,40,48);
+  doc.setFontSize(9);doc.text("ANVORA · Raja Vadlamani",40,65);
+  let y=88;
+  const s=document.getElementById(sectionId);
+  [...s.querySelectorAll("h1,h2,h3,p,li")].slice(0,100).forEach(el=>{
+    const t=el.innerText.replace(/\s+/g," ").trim();if(!t)return;
+    const lines=doc.splitTextToSize(t,515);
+    if(y+lines.length*12>800){doc.addPage();y=45}
+    doc.setFontSize(el.matches("h1,h2,h3")?13:9);doc.text(lines,40,y);y+=Math.max(15,lines.length*11+4);
+  });
+  doc.save(file);
+}
+function exportLeadershipPDF(){anvoraPDF("leadership","ANVORA Leadership MIS","ANVORA_Leadership_MIS.pdf")}
+function exportAuditorPDF(){anvoraPDF("auditor","ANVORA Auditor / Verifier Review","ANVORA_Auditor_Review.pdf")}
+function printReport(id){
+  const s=document.getElementById(id);if(!s)return;
+  const w=window.open("","_blank");
+  w.document.write("<html><head><title>ANVORA Report</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#172033}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:7px}.exec-toolbar{display:none}</style>
+<style id="anvora-v21-responsive">
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.table-wrap table{min-width:720px}
+.exec-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.filter-grid{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:10px}
+.filter-grid .wide{grid-column:span 2}
+.explorer-table{font-size:12px}
+.explorer-table th,.explorer-table td{white-space:nowrap}
+.status-chip{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800}
+.status-pass{background:#e5f4ec;color:#176b52}.status-review{background:#fff3d6;color:#8a5a00}
+.status-not{background:#f0f2f3;color:#66736e}.status-risk{background:#fde7e4;color:#a33a32}
+.mini-bar{height:8px;background:#edf1f5;border-radius:99px;overflow:hidden}.mini-bar span{display:block;height:100%;background:#315f8a}
+@media(max-width:900px){
+  .exec-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .filter-grid .wide{grid-column:span 1}
+}
+@media(max-width:560px){
+  header{padding:22px 16px}.wrap{width:100%;padding-left:14px;padding-right:14px}
+  main{padding-top:14px}.card{padding:14px;border-radius:12px}
+  .exec-kpis{grid-template-columns:1fr 1fr;gap:9px}.exec-kpi{padding:13px}
+  .exec-kpi-value{font-size:20px}.exec-hero{padding:20px}.exec-hero h1{font-size:24px}
+  .filter-grid{grid-template-columns:1fr}
+  .filter-grid .wide{grid-column:span 1}
+  .nav{padding-left:2px;padding-right:2px}
+  .nav button{padding:9px 10px;font-size:12px;white-space:nowrap}
+  .exec-toolbar button{width:100%}
+}
+</style>
+</head><body>"+s.innerHTML+"</body></html>");
+  w.document.close();w.focus();setTimeout(()=>w.print(),300);
+}
+
+</script>
+<style id="raja-branding">
+  .raja-brand{font-weight:700;letter-spacing:.2px}
+  .raja-signature{margin-top:10px;font-size:12px;opacity:.78}
+  .raja-signature strong{font-weight:700}
+</style>
+
+<meta name="author" content="Raja Vadlamani">
+<meta name="author-email" content="raja.vadlamani@gmail.com">
+
+<style id="anvora-dashboard-style">
+.exec-hero{padding:30px;border-radius:20px;background:linear-gradient(135deg,#0f172a,#294765);color:#fff;margin:12px 0 20px}
+.exec-hero h1{margin:0 0 8px;font-size:30px}.exec-hero p{margin:0;opacity:.85}
+.exec-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin:18px 0}
+.exec-kpi{padding:18px;border:1px solid #e6eaf0;border-radius:16px;background:#fff;box-shadow:0 6px 24px rgba(15,23,42,.07)}
+.exec-kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.6}.exec-kpi-value{font-size:25px;font-weight:750;margin-top:7px}
+.exec-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}.exec-toolbar button{border-radius:10px;padding:9px 13px}
+.chart-card{border:1px solid #e6eaf0;border-radius:16px;background:#fff;padding:18px;margin-top:14px}
+.bar-row{display:grid;grid-template-columns:minmax(130px,1fr) 3fr 90px;gap:10px;align-items:center;margin:10px 0}.bar-track{height:12px;background:#edf1f5;border-radius:99px;overflow:hidden}.bar-fill{height:100%;background:#315f8a;border-radius:99px}
+.report-note{font-size:12px;opacity:.65;margin-top:8px}
+@media print{nav,.exec-toolbar,button{display:none!important}.card{break-inside:avoid}}
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand">ANVORA</div>
+  <div class="sub">Seed Climate Ledger</div>
+  <div class="tag">FIELD-TO-SEED CLIMATE ACCOUNTING &amp; MRV · Measure. Trace. Reconcile. Report.</div>
+</div></header>
+
+<nav><a href="#auditor">Auditor / Verifier</a><a href="#leadership">Leadership MIS</a><a href="#farmer">Farmer Quick Start</a><div class="wrap nav">
+<button data-page="home" class="active">Overview</button><button data-page="workspace">Data Workspace</button>
+<button data-page="synthetic">Synthetic Data</button><button data-page="validation">Validation</button>
+<button data-page="control">Scientific Control</button><button data-page="calculation">Calculation</button><button data-page="evidence">Evidence</button><button data-page="uncertainty">Confidence &amp; Uncertainty</button><button data-page="mrv">MRV Readiness</button><button data-page="intelligence">Intelligence</button><button data-page="passport">Climate Passport</button><button data-page="feedback">Feedback</button>
+</div></nav>
+
+<main class="wrap">
+<section id="home" class="page active">
+<div class="grid g3">
+<div class="card"><div class="kicker">Platform status</div><div class="metric">Public Beta</div><div class="muted">ANVORA v2.1 · Rice implementation</div></div>
+<div class="card"><div class="kicker">Data status</div><div id="homeData" class="metric">No dataset</div><div id="homeDataSub" class="muted">Create synthetic data or import CSV</div></div>
+<div class="card"><div class="kicker">MRV status</div><div id="homeMRV" class="metric">Not ready</div><div class="muted">Readiness is evidence- and methodology-dependent</div></div>
 </div>
-<div class="card"><span class="tag">Challenge the framework</span><h2>We want people to find what is wrong</h2><p class="quote">What is missing? What factor is inappropriate? Which Indian data source should replace it? What activity have we overlooked?</p><p>Feedback should distinguish between calculation logic, emission factors, methodology applicability, Indian evidence, data requirements and system-boundary questions. Specific evidence is especially valuable.</p><ul><li>Identify an emission factor that should be changed.</li><li>Point to an Indian or international source that should be considered.</li><li>Flag a possible double-counting issue.</li><li>Suggest a missing field activity or post-harvest activity.</li><li>Test the mass balance with real or anonymised records.</li><li>Challenge whether a factor is appropriate for seed production rather than grain production.</li></ul></div>
-<div class="two"><div class="card"><span class="tag">Methodology discipline</span><h2>Evidence is classified</h2><p>The framework distinguishes between approved/official methodologies, Indian scientific evidence, international defaults, technology-specific evidence and illustrative assumptions.</p><p>Unvalidated components are intentionally marked <b>TBD / excluded</b> rather than being given an unsupported default value.</p></div><div class="card"><span class="tag">Important limitation</span><h2>What v7 does not certify</h2><p>The validator checks data structure and basic consistency. It does <b>not</b> certify carbon factors, methodology applicability, additionality, permanence, evidence authenticity or carbon-credit eligibility.</p></div></div>
-<div class="card"><span class="tag">How to test</span><h2>Three simple ways to participate</h2><ol><li><b>Run the validator:</b> open <a href="validator.html">validator.html</a> and paste CSV records.</li><li><b>Use the Excel template:</b> populate anonymised or real seasonal data and test the field structure.</li><li><b>Send feedback:</b> use the repository's GitHub Issues to report a specific problem, preferably with the source or evidence supporting the suggestion.</li></ol></div>
-<div class="card"><span class="tag">Version governance</span><h2>v7.0 status</h2><p><span class="status">Public Beta</span> <span class="status">Open for review</span> <span class="status">Not independently verified</span></p><p>Version 7 is intended as a consultation and validation release. Changes arising from substantive evidence will be incorporated into later versions with the factor source, rationale and version history recorded.</p></div>
-<div class="card"><h2>About the project</h2><p>The Rice Seed Climate Ledger is being developed as a practical field-to-finished-seed accounting framework for Indian rice seed production. The aim is to make the accounting transparent enough to be tested, challenged and progressively improved.</p><p class="muted">Suggested citation: <i>Rice Seed Climate Ledger, Public Beta v7.0, September 2026.</i></p></div>
-</div></main>
-<footer><div class="wrap">Rice Seed Climate Ledger • Public Beta v7.0 • September 2026 • Open for technical review</div></footer>
-</body></html>
+<div class="card" style="margin-top:16px">
+<div class="kicker">Field-to-seed chain</div><h1>From parent seed to finished seed lot</h1>
+<p class="muted">ANVORA connects production activity data, traceability, climate calculations, evidence and mass balance in one auditable workflow.</p>
+<div class="grid g3" style="margin-top:16px">
+<div class="step"><div class="num">1</div><div><b>Create</b><br><span class="muted">Project and dataset</span></div></div>
+<div class="step"><div class="num">2</div><div><b>Trace</b><br><span class="muted">Lot → grower → plot → activity</span></div></div>
+<div class="step"><div class="num">3</div><div><b>Validate</b><br><span class="muted">Structure, logic, mass balance</span></div></div>
+<div class="step"><div class="num">4</div><div><b>Calculate</b><br><span class="muted">Transparent emission modules</span></div></div>
+<div class="step"><div class="num">5</div><div><b>Review</b><br><span class="muted">Factors, evidence, uncertainty</span></div></div>
+<div class="step"><div class="num">6</div><div><b>Report</b><br><span class="muted">Climate Passport</span></div></div>
+</div>
+<div class="actions"><button class="primary" onclick="showPage('synthetic')">Generate test dataset</button><button class="btn secondary" onclick="showPage('workspace')">Open data workspace</button></div>
+</div>
+<div class="notice"><b>Public Beta boundary:</b> ANVORA calculates and traces prototype climate-accounting results. It does not certify factors, carbon credits, offsets, regulatory compliance, or independent verification.</div>
+<div class="notice"><b>Important:</b> This public beta is a calculation and MRV framework prototype. Passing validation does not certify carbon factors, methodology applicability, evidence authenticity, offsets, credits, or third-party verification.</div>
+</section>
+
+
+
+<section id="use-case-router" class="card">
+  <div class="eyebrow">ANVORA · CHOOSE YOUR WORKFLOW</div>
+  <h1>Climate intelligence for every scale</h1>
+  <p class="muted">Use the simple farmer workflow for one farm, or upload structured data for an entire agricultural programme.</p>
+  <div class="grid" style="margin-top:18px">
+    <div class="card" style="border:1px solid var(--line,#ddd)">
+      <h2>🌾 Farmer Quick Start</h2>
+      <p>For an individual farmer or a single farm. Enter a few details and see an immediate provisional climate estimate.</p>
+      <a class="button primary" href="#farmer">Calculate my farm footprint →</a>
+    </div>
+    <div class="card" style="border:1px solid var(--line,#ddd)">
+      <h2>🏢 Corporate / Enterprise</h2>
+      <p>For seed companies, FPOs, programmes and aggregators managing many farmers, plots and lots.</p>
+      <a class="button" href="#workspace">Upload Excel / CSV dataset →</a>
+      <p class="muted" style="margin-top:8px">Supports multi-farmer, multi-plot and multi-lot data, validation, mass balance, evidence and MRV controls.</p>
+    </div>
+  </div>
+</section>
+
+
+<section id="auditor" class="card"><div class="exec-toolbar"><button onclick="exportAuditorExcel()">Download Auditor Excel</button><button onclick="exportAuditorPDF()">Download Auditor PDF</button><button onclick="printReport('auditor')">Print / Save PDF</button></div>
+  <div class="eyebrow">ANVORA · AUDITOR / VERIFIER VIEW</div>
+  <h1>Review evidence, exceptions and calculation controls</h1>
+  <p class="muted">A review-support workspace for checking dataset completeness, evidence coverage, calculation controls and outstanding exceptions. ANVORA does not itself provide accredited third-party verification.</p>
+
+  <div class="grid" id="auditKpis">
+    <div><strong>Dataset status</strong><br><span id="auditDataset">Not loaded</span></div>
+    <div><strong>Evidence coverage</strong><br><span id="auditEvidence">—</span></div>
+    <div><strong>Mass-balance status</strong><br><span id="auditMass">—</span></div>
+    <div><strong>MRV readiness</strong><br><span id="auditMRV">—</span></div>
+  </div>
+
+  <h2 style="margin-top:20px">Review checklist</h2>
+  <div id="auditChecklist" class="table-wrap">
+    <table><thead><tr><th>Control</th><th>Status</th><th>What to review</th></tr></thead>
+    <tbody>
+      <tr><td>Dataset loaded</td><td id="acDataset">—</td><td>Confirm the intended dataset/version is loaded.</td></tr>
+      <tr><td>Farmer / plot / lot linkage</td><td id="acLinkage">—</td><td>Check identifiers and relationships.</td></tr>
+      <tr><td>Mass balance</td><td id="acMass">—</td><td>Check lot production against finished seed.</td></tr>
+      <tr><td>Evidence coverage</td><td id="acEvidence">—</td><td>Review missing or incomplete evidence.</td></tr>
+      <tr><td>Methodology / factors controlled</td><td id="acMethod">—</td><td>Confirm versions and prototype/validated status.</td></tr>
+      <tr><td>Calculation run identified</td><td id="acRun">—</td><td>Confirm run ID and calculation fingerprint.</td></tr>
+    </tbody></table>
+  </div>
+
+  
+<div class="chart-card">
+  <div class="eyebrow">METHODOLOGY SCREENING</div>
+  <h2>Rice improved-management screening</h2>
+  <p class="muted">Selected methodology anchor: BEE BM AG04.002. This is an ANVORA applicability and readiness screen only. A pass does not mean a carbon credit exists or will be issued.</p>
+  <div class="filter-grid">
+    <div class="wide"><label>Screening basis<select id="audMethod"><option value="BEE-BM-AG04.002">BEE BM AG04.002 — rice improved management</option></select></label></div>
+    <div><label>Baseline proxy<select id="audBaseline"><option value="continuous">Continuous flooding proxy</option></select></label></div>
+  </div>
+  <div id="audScreenKpis" class="exec-kpis" style="margin-top:14px"></div>
+  <div class="table-wrap">
+    <div id="audScreenTable"><p class="muted">Load a dataset to populate methodology screening.</p></div>
+  </div>
+  <p class="report-note">Modeled reduction shown here is a proxy comparison against the selected baseline assumption. Methodology-specific baseline determination, additionality, leakage, uncertainty deductions, conservativeness and verification remain <strong>not assessed</strong> unless separately evidenced and governed.</p>
+</div>
+
+  <h2 style="margin-top:20px">Exception queue</h2>
+  <div id="auditExceptions"><p class="muted">Load or calculate a dataset to populate review exceptions.</p></div>
+</section>
+
+<section id="farmer" class="card">
+  <div class="eyebrow">ANVORA · FARMER QUICK START</div>
+  <h1>Get your farm climate footprint</h1>
+  <p class="muted">Enter a few farm details to generate an illustrative climate estimate instantly. You do not need to understand lots, datasets, or MRV terminology.</p>
+
+  <div class="grid">
+    <div><label>Farm area (hectares)<input id="fqArea" type="number" min="0.01" step="0.01" value="3"></label></div>
+    <div><label>Crop
+      <select id="fqCrop"><option>Rice</option></select>
+    </label></div>
+    <div><label>Crop duration (days)<input id="fqDays" type="number" min="1" value="120"></label></div>
+    <div><label>Water regime
+      <select id="fqWater">
+        <option value="continuous">Continuously flooded</option>
+        <option value="intermittent">Intermittent irrigation</option>
+        <option value="awd">Alternate wetting and drying (AWD)</option>
+        <option value="rainfed">Rainfed</option>
+        <option value="unknown">I don't know</option>
+      </select>
+    </label></div>
+    <div><label>Urea (kg)<input id="fqUrea" type="number" min="0" step="0.1" value="150"></label></div>
+    <div><label>DAP (kg)<input id="fqDAP" type="number" min="0" step="0.1" value="50"></label></div>
+    <div><label>Other N fertilizer (kg)<input id="fqOtherN" type="number" min="0" step="0.1" value="0"></label></div>
+    <div><label>Harvest quantity (tonnes)<input id="fqHarvest" type="number" min="0" step="0.01" value="12"></label></div>
+    <div><label>Finished saleable seed (tonnes)<input id="fqSeed" type="number" min="0.01" step="0.01" value="9"></label></div>
+  </div>
+
+  <div style="margin-top:16px">
+    <button class="primary" onclick="farmerQuickCalculate()">Calculate my footprint</button>
+    <button onclick="document.getElementById('farmerResult').scrollIntoView({behavior:'smooth'})">View result</button>
+  </div>
+
+  <div id="farmerResult" class="result-box" style="margin-top:18px">
+    <h2>Your ANVORA result</h2>
+    <p class="muted">Enter your details and select “Calculate my footprint”.</p>
+  </div>
+</section>
+
+
+<div id="corporate-banner" class="card" style="margin-bottom:16px">
+  <div class="eyebrow">CORPORATE / ENTERPRISE DATA WORKSPACE</div>
+  <h2>Upload data for your full farmer network</h2>
+  <p>Use the Excel uploader below for structured datasets covering many farmers, farms, plots and lots. ANVORA validates the records before calculation.</p>
+  <div class="grid">
+    <div><strong>Excel</strong><br><span class="muted">Upload the ANVORA workbook directly in your browser.</span></div>
+    <div><strong>CSV</strong><br><span class="muted">Import Lot Master and Plot Data separately where required.</span></div>
+    <div><strong>Controls</strong><br><span class="muted">Validation · mass balance · evidence · MRV · Climate Passport</span></div>
+  </div>
+</div>
+
+<section id="workspace" class="page">
+<div class="card">
+<div class="kicker">Excel upload</div><h2>Import ANVORA Excel workbook</h2>
+<p class="muted">Upload an .xlsx workbook containing sheets named <b>Lot Master</b> and/or <b>Plot Data</b>. The browser reads the workbook locally; the file is not uploaded to a server by this prototype.</p>
+<input id="excelFile" type="file" accept=".xlsx,.xls,.csv">
+<div class="actions"><button class="primary" onclick="importExcel()">Import Excel workbook</button></div>
+<div id="excelStatus" class="notice">No workbook imported.</div>
+</div>
+<div class="card">
+<div class="kicker">Data workspace</div><h1>Project &amp; dataset</h1>
+<div class="grid g3">
+<div><label>Project name</label><input id="projectName" value="ANVORA Rice Pilot"></div>
+<div><label>Season</label><input id="season" value="Kharif 2026"></div>
+<div><label>Dataset ID</label><input id="datasetId" value="ANVORA-DEMO-001"></div>
+</div>
+<div class="actions"><button class="primary" onclick="saveProject()">Save project</button><button class="btn secondary" onclick="downloadCSV('lots')">Download Lot CSV</button><button class="btn secondary" onclick="downloadCSV('plots')">Download Plot CSV</button><button class="btn secondary" onclick="clearData()">Clear dataset</button></div>
+</div>
+<div class="card" style="margin-top:16px">
+<h2>Import CSV</h2><p class="muted">Paste either a Lot Master CSV or Plot Data CSV. The parser expects the ANVORA field structure.</p>
+<div class="grid g2"><div><label>Data type</label><select id="importType"><option value="lots">Lot Master</option><option value="plots">Plot Data</option></select></div><div><label>CSV content</label><textarea id="csvInput" rows="7" placeholder="Paste CSV here"></textarea></div></div>
+<div class="actions"><button class="primary" onclick="importCSV()">Import &amp; validate structure</button></div>
+</div>
+<div class="grid g2" style="margin-top:16px">
+<div class="card"><h2>Lot Master</h2><div id="lotsTable" class="muted">No lots loaded.</div></div>
+<div class="card"><h2>Plot Registry</h2><div id="plotsTable" class="muted">No plots loaded.</div></div>
+</div>
+</section>
+
+<section id="synthetic" class="page">
+<div class="card">
+<div class="kicker">Synthetic data mode</div><h1>Generate a realistic test dataset</h1>
+<p class="muted">Use this mode to test the complete ANVORA workflow without confidential farm or employee information.</p>
+<div class="grid g4">
+<div><label>Lots</label><input id="nLots" type="number" min="1" max="100" value="10"></div>
+<div><label>Plots per lot</label><input id="plotsPerLot" type="number" min="1" max="30" value="10"></div>
+<div><label>Area / plot (ha)</label><input id="areaPlot" type="number" min=".1" step=".1" value="1"></div>
+<div><label>Yield variation</label><select id="yieldVar"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div>
+</div>
+<div class="grid g3">
+<div><label>Water regimes</label><select id="waterMix"><option value="mixed" selected>Mixed</option><option value="awd">Mostly AWD</option><option value="flood">Mostly flooded</option></select></div>
+<div><label>Data quality</label><select id="qualityMix"><option value="good" selected>Good</option><option value="mixed">Mixed</option><option value="issues">Intentionally imperfect</option></select></div>
+<div><label>Seed type</label><select id="seedType"><option>Hybrid Rice</option><option>Inbred Rice</option></select></div>
+</div>
+<div class="actions"><button class="primary" onclick="generateSynthetic()">Generate &amp; load dataset</button></div>
+<div class="notice">Synthetic records are clearly labelled as DEMO data. They must not be represented as measured field results.</div>
+</div>
+</section>
+
+<section id="validation" class="page">
+<div class="grid g4">
+<div class="card"><div class="kicker">Plots</div><div id="vPlots" class="metric">0</div></div>
+<div class="card"><div class="kicker">Area</div><div id="vArea" class="metric">0 ha</div></div>
+<div class="card"><div class="kicker">Checks passed</div><div id="vPass" class="metric">0</div></div>
+<div class="card"><div class="kicker">Open issues</div><div id="vIssues" class="metric">0</div></div>
+</div>
+<div class="card" style="margin-top:16px"><div class="kicker">Quality gate</div><h1 id="gateTitle">No dataset loaded</h1><div class="bar"><span id="gateBar" style="width:0%"></span></div><div id="validationResults" style="margin-top:15px"></div></div>
+</section>
+
+
+<section id="control" class="page">
+<div class="card">
+<div class="kicker">Scientific control layer</div><h1>Methodology &amp; Factor Registry</h1>
+<p class="muted">ANVORA v1.4 separates scientific assumptions from the calculation engine. Prototype records are clearly marked and can be replaced by controlled methodology/factor records.</p>
+<div class="grid g4">
+<div><label>Product version</label><input id="productVersion" value="ANVORA v1.4"></div>
+<div><label>Methodology version</label><input id="methodVersion" value="RICE-PROTOTYPE v0.1"></div>
+<div><label>Factor registry version</label><input id="factorVersion" value="EF-REGISTRY v0.1"></div>
+<div><label>GWP version</label><input id="gwpVersion" value="Prototype GWP set"></div>
+</div>
+<div class="actions"><button class="primary" onclick="saveControls()">Save control versions</button></div>
+</div>
+
+<div class="grid g2" style="margin-top:16px">
+<div class="card">
+<h2>Methodology Registry</h2>
+<table><tr><th>Field</th><th>Prototype record</th></tr>
+<tr><td>Methodology ID</td><td>RICE-PROTOTYPE-001</td></tr>
+<tr><td>Crop</td><td>Rice</td></tr>
+<tr><td>Boundary</td><td>Field-to-Finished Seed</td></tr>
+<tr><td>Status</td><td><span class="pill warn">Testing</span></td></tr>
+<tr><td>Eligibility</td><td>Prototype workflow only</td></tr>
+<tr><td>Source</td><td>ANVORA controlled draft — not an external certification methodology</td></tr></table>
+</div>
+<div class="card">
+<h2>Factor Registry</h2>
+<table><tr><th>Factor</th><th>Value</th><th>Status</th></tr>
+<tr><td>CH₄ cultivation</td><td id="regCH4">120 kg CH₄/ha</td><td><span class="pill warn">Prototype</span></td></tr>
+<tr><td>N₂O direct</td><td id="regN2O">0.01 kg N₂O-N/kg N</td><td><span class="pill warn">Prototype</span></td></tr>
+<tr><td>Electricity</td><td id="regEnergy">0.70 kg CO₂e/kWh</td><td><span class="pill warn">Prototype</span></td></tr>
+<tr><td>Post-harvest</td><td id="regPost">45 kg CO₂e/t seed</td><td><span class="pill warn">Prototype</span></td></tr></table>
+</div>
+</div>
+
+<div class="card" style="margin-top:16px">
+<h2>Calculation fingerprint</h2>
+<p class="muted">Every calculation will carry a reproducibility record linking the dataset, methodology, factors, GWP set, engine version and run timestamp.</p>
+<div id="fingerprint" class="notice">No calculation run yet.</div>
+</div>
+
+<div class="card" style="margin-top:16px">
+<h2>Governance rule</h2>
+<div class="notice warning"><b>ANVORA does not certify the scientific validity of a methodology merely because it is present in the registry.</b> Registry status, source, applicability and external verification must remain explicit.</div>
+</div>
+</section>
+
+<section id="calculation" class="page">
+<div class="card"><div class="kicker">Transparent calculation engine</div><h1>Illustrative climate accounting</h1>
+<p class="muted">The factors below are prototype defaults for workflow testing. They are not presented as approved methodology factors.</p>
+<div class="grid g4">
+<div><label>CH₄ factor · kg CH₄/ha</label><input id="efCH4" type="number" value="120"></div>
+<div><label>Direct N₂O factor · kg N₂O-N / kg N</label><input id="efN2O" type="number" step=".0001" value=".01"></div>
+<div><label>Energy · kg CO₂e/kWh</label><input id="efEnergy" type="number" step=".001" value=".7"></div>
+<div><label>Post-harvest · kg CO₂e/tonne seed</label><input id="efPost" type="number" value="45"></div>
+</div>
+<div class="actions"><button class="primary" onclick="calculate()">Run calculation</button></div>
+<div id="calcOutput" style="margin-top:16px"></div>
+</div>
+</section>
+
+
+<section id="evidence" class="page">
+<div class="card">
+<div class="kicker">Evidence Registry</div><h1>Evidence &amp; Data Confidence</h1>
+<p class="muted">Every important activity input should be traceable to an evidence record. This registry is a prototype control layer, not an evidence-verification service.</p>
+<div class="grid g4">
+<div class="card"><div class="kicker">Plots</div><div id="evPlots" class="metric">0</div></div>
+<div class="card"><div class="kicker">Plots with evidence</div><div id="evCovered" class="metric">0</div></div>
+<div class="card"><div class="kicker">Coverage</div><div id="evCoverage" class="metric">0%</div></div>
+<div class="card"><div class="kicker">Overall status</div><div id="evStatus" class="metric">Not assessed</div></div>
+</div>
+<div style="margin-top:16px" class="card">
+<table id="evidenceTable"><tr><th>Evidence ID</th><th>Record Type</th><th>Source Class</th><th>Coverage</th><th>Status</th></tr></table>
+</div>
+<div class="notice warning"><b>Control rule:</b> Evidence presence is not evidence authenticity. ANVORA records traceability and coverage; verification remains a separate process.</div>
+</div>
+</section>
+
+<section id="uncertainty" class="page">
+<div class="card">
+<div class="kicker">Confidence &amp; uncertainty</div><h1>Data Quality, Factor Confidence &amp; Uncertainty</h1>
+<p class="muted">This layer prevents a precise-looking output from being mistaken for a precise measurement. The current beta uses transparent heuristic flags for workflow testing.</p>
+<div class="grid g4">
+<div class="card"><div class="kicker">Data confidence</div><div id="dataConfidence" class="metric">—</div></div>
+<div class="card"><div class="kicker">Factor confidence</div><div id="factorConfidence" class="metric">Prototype</div></div>
+<div class="card"><div class="kicker">Method confidence</div><div id="methodConfidence" class="metric">Prototype</div></div>
+<div class="card"><div class="kicker">Overall readiness</div><div id="overallConfidence" class="metric">—</div></div>
+</div>
+<div class="card" style="margin-top:16px">
+<h2>Uncertainty flags</h2>
+<div id="uncertaintyFlags" class="notice">Run validation to assess the dataset.</div>
+</div>
+<div class="card" style="margin-top:16px">
+<h2>Interpretation</h2>
+<p class="muted">Prototype confidence is a governance signal, not a statistically derived uncertainty interval. A future production implementation should attach uncertainty distributions or validated error bounds to each material parameter and calculation module.</p>
+</div>
+</div>
+</section>
+
+<section id="mrv" class="page">
+<div class="card">
+<div class="kicker">MRV readiness</div><h1>Measurement, Reporting &amp; Verification Readiness</h1>
+<p class="muted">ANVORA separates calculation readiness from verification readiness.</p>
+<div class="grid g4">
+<div class="card"><div class="kicker">Data</div><div id="mrvData" class="metric">—</div></div>
+<div class="card"><div class="kicker">Evidence</div><div id="mrvEvidence" class="metric">—</div></div>
+<div class="card"><div class="kicker">Method</div><div id="mrvMethod" class="metric">—</div></div>
+<div class="card"><div class="kicker">Overall</div><div id="mrvOverall" class="metric">Not ready</div></div>
+</div>
+<div id="mrvChecklist" style="margin-top:16px"></div>
+<div class="notice warning"><b>Important:</b> "Ready" here means ready for internal review of the prototype workflow. It does not mean externally verified, certified, or eligible for a carbon-crediting program.</div>
+</div>
+</section>
+
+<section id="intelligence" class="page">
+<div class="card">
+<div class="kicker">Decision intelligence</div><h1>Hotspots &amp; Scenario Framework</h1>
+<p class="muted">This is the bridge from measurement to action. Recommendations remain descriptive in this beta; they are not optimization claims.</p>
+<div class="grid g3">
+<div class="card"><div class="kicker">CH₄ share</div><div id="hotCH4" class="metric">—</div></div>
+<div class="card"><div class="kicker">N₂O share</div><div id="hotN2O" class="metric">—</div></div>
+<div class="card"><div class="kicker">Energy + post-harvest</div><div id="hotOther" class="metric">—</div></div>
+</div>
+<div class="card" style="margin-top:16px">
+<h2>Scenario controls</h2>
+<div class="grid g4">
+<div><label>CH₄ multiplier</label><input id="scCH4" type="number" step=".05" value="0.8"></div>
+<div><label>N₂O multiplier</label><input id="scN2O" type="number" step=".05" value="0.9"></div>
+<div><label>Energy multiplier</label><input id="scEnergy" type="number" step=".05" value="0.9"></div>
+<div><label>Post-harvest multiplier</label><input id="scPost" type="number" step=".05" value="0.9"></div>
+</div>
+<div class="actions"><button class="primary" onclick="runScenario()">Run illustrative scenario</button></div>
+<div id="scenarioOutput" style="margin-top:14px"></div>
+</div>
+<div class="notice">Scenario results are mathematical sensitivity tests against the prototype baseline. They are not forecasts of actual field performance.</div>
+</div>
+</section>
+
+<section id="passport" class="page">
+<div class="card"><div class="kicker">Climate Passport</div><h1 id="passportTitle">No calculation available</h1>
+<div id="passportBody" class="muted">Run validation and calculation to create a passport.</div>
+<div class="actions"><button class="primary" onclick="downloadPassport()">Export passport</button></div>
+</div>
+</section>
+
+<section id="feedback" class="page">
+<div class="card"><div class="kicker">Public beta</div><h1>ANVORA Validation Log</h1>
+<p class="muted">Capture tester observations without collecting personal or confidential farm data.</p>
+<div class="grid g2">
+<div><label>Feedback category</label><select id="fbCat"><option>Data import</option><option>Validation</option><option>Calculation</option><option>MRV / evidence</option><option>Usability</option><option>Other</option></select></div>
+<div><label>Severity</label><select id="fbSev"><option>Observation</option><option>Minor issue</option><option>Major issue</option><option>Critical issue</option></select></div>
+</div>
+<label>Feedback</label><textarea id="fbText" rows="5" placeholder="What happened? What did you expect?"></textarea>
+<div class="actions"><button class="primary" onclick="addFeedback()">Add to local log</button><button class="btn secondary" onclick="downloadFeedback()">Export feedback CSV</button></div>
+<div id="feedbackLog" style="margin-top:16px"></div>
+</div>
+</section>
+</main>
+<footer><div class="notice" style="margin-bottom:14px"><b>v2.1 release-candidate note:</b> Leadership drilldown, methodology screening and export workbooks are decision-support features. Methodology screening is not credit issuance, and modeled reductions are not verified credits.</div><div class="wrap">ANVORA | Seed Climate Ledger · Public Beta v1.4 · Concept &amp; Architecture: Raja Vadlamani · Calculation outputs are prototype outputs and are not carbon-credit certification.</div>
+<div class="raja-signature">Created and developed by <strong>Raja Vadlamani</strong> · ANVORA Agricultural Climate Intelligence<br>Contact: <a href="mailto:raja.vadlamani@gmail.com">raja.vadlamani@gmail.com</a></div>
+
+<div class="report-note">ANVORA dashboards and review reports can be exported to Excel or PDF for management, audit and presentation use.</div>
+</footer>
+
+<script>
+const S={lots:[],plots:[],project:{},calc:null,feedback:[],
+controls:{productVersion:'ANVORA v1.4',methodVersion:'RICE-PROTOTYPE v0.1',factorVersion:'EF-REGISTRY v0.1',gwpVersion:'Prototype GWP set'}};
+const lotCols=["Seed Lot ID","Crop","Variety/Hybrid","Season","State","District","Production Start","Production End","Harvested Seed kg","Finished Saleable Seed kg","Evidence ID","Data Class","Notes"];
+const plotCols=["Seed Lot ID","Plot ID","Village","District","Area ha","Crop Days","Water Regime","Pre-season Flooding","Drainage/AWD Events","Urea kg/ha","DAP kg/ha","MOP kg/ha","Other N kg/ha","Organic Amendment","Residue Fate","Crop Protection kg/ha","Biological Intervention","Evidence ID","Data Class","Notes"];
+function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===id));if(id==='validation')renderValidation();if(id==='workspace')renderTables();if(id==='passport')renderPassport();if(id==='feedback')renderFeedback();if(id==='control')loadControls();if(id==='evidence')renderEvidence();if(id==='uncertainty')renderUncertainty();if(id==='mrv')renderMRV();if(id==='intelligence')renderIntelligence()}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+function importExcel(){
+const f=document.getElementById('excelFile').files[0];
+if(!f){alert('Please select an Excel workbook first.');return}
+if(typeof XLSX==='undefined'){alert('Excel reader is unavailable. Check your internet connection and reload the page.');return}
+const reader=new FileReader();
+reader.onload=function(e){
+try{
+const wb=XLSX.read(e.target.result,{type:'array'});
+let loaded=[];
+const lotSheet=wb.Sheets['Lot Master']||wb.Sheets['Lots']||wb.Sheets[wb.SheetNames[0]];
+const plotSheet=wb.Sheets['Plot Data']||wb.Sheets['Plots']||(wb.SheetNames.length>1?wb.Sheets[wb.SheetNames[1]]:null);
+function sheetRows(sh){return sh?XLSX.utils.sheet_to_json(sh,{defval:'',raw:false}):[]}
+const lots=sheetRows(lotSheet),plots=sheetRows(plotSheet);
+if(lots.length){
+const missing=lotCols.filter(c=>!(c in lots[0]));
+if(!missing.length){S.lots=lots;loaded.push('Lot Master: '+lots.length)}
+else loaded.push('Lot Master skipped — missing: '+missing.join(', '));
+}
+if(plots.length){
+const missing=plotCols.filter(c=>!(c in plots[0]));
+if(!missing.length){S.plots=plots;loaded.push('Plot Data: '+plots.length)}
+else loaded.push('Plot Data skipped — missing: '+missing.join(', '));
+}
+S.project={name:document.getElementById('projectName').value,season:document.getElementById('season').value,id:document.getElementById('datasetId').value};
+document.getElementById('excelStatus').innerHTML='<b>Workbook read locally.</b><br>'+loaded.join('<br>');
+renderTables();renderHome();renderValidation();
+}catch(err){document.getElementById('excelStatus').innerHTML='<b>Excel import failed:</b> '+esc(err.message)}
+};
+reader.readAsArrayBuffer(f);
+}
+function csvParse(s){const rows=[];let row=[],cell='',q=false;for(let i=0;i<s.length;i++){let c=s[i],n=s[i+1];if(c=='"'&&q&&n=='"'){cell+='"';i++;continue}if(c=='"'){q=!q;continue}if(c==','&&!q){row.push(cell);cell='';continue}if((c=='\n'||c=='\r')&&!q){if(c=='\r'&&n=='\n')i++;row.push(cell);if(row.some(x=>x.trim()!==''))rows.push(row);row=[];cell='';continue}cell+=c}if(cell!==''||row.length){row.push(cell);rows.push(row)}return rows}
+function rowsToObjects(rows){let h=rows[0].map(x=>x.trim());return rows.slice(1).map(r=>Object.fromEntries(h.map((k,i)=>[k,(r[i]??'').trim()])))}
+function importCSV(){const type=document.getElementById('importType').value, rows=csvParse(document.getElementById('csvInput').value.trim());if(rows.length<2){alert('Please paste a CSV with a header and at least one row.');return}const need=type==='lots'?lotCols:plotCols;const missing=need.filter(c=>!rows[0].includes(c));if(missing.length){alert('Missing required columns: '+missing.join(', '));return}S[type]=rowsToObjects(rows);S.project={name:document.getElementById('projectName').value,season:document.getElementById('season').value,id:document.getElementById('datasetId').value};renderTables();renderHome();alert('Imported '+S[type].length+' '+type+' records. Run Validation next.')}
+function generateSynthetic(){const n=+nLots.value,ppl=+plotsPerLot.value,a=+areaPlot.value,reg=waterMix.value,q=qualityMix.value;S.lots=[];S.plots=[];const regimes=reg==='awd'?['AWD','AWD','AWD','Intermittent']:reg==='flood'?['Continuously flooded','Continuously flooded','Flooded + drainage','Intermittent']:['AWD','Continuously flooded','Intermittent','Flooded + drainage'];for(let i=1;i<=n;i++){let id='ANV-RICE-'+String(i).padStart(3,'0'),harv=0;for(let j=1;j<=ppl;j++){let area=a,days=115+Math.round(Math.random()*25),water=regimes[Math.floor(Math.random()*regimes.length)],urea=60+Math.round(Math.random()*70),dap=35+Math.round(Math.random()*45),mop=20+Math.round(Math.random()*30),other=Math.random()<.15?10:0;let bad=q==='issues'&&Math.random()<.12;if(bad){if(Math.random()<.5) area=''; if(Math.random()<.5) document.body.dataset.bad='1'}let y=area===''?0:(2.5+Math.random()*2.5)*(q==='mixed'&&Math.random()<.2?0.7:1);harv+=y*1000;S.plots.push({'Seed Lot ID':id,'Plot ID':id+'-P'+j,'Village':'Demo Village '+j,'District':'Demo District','Area ha':area,'Crop Days':days,'Water Regime':water,'Pre-season Flooding':Math.random()<.5?'Yes':'No','Drainage/AWD Events':water==='AWD'?3+Math.floor(Math.random()*5):Math.floor(Math.random()*3),'Urea kg/ha':urea,'DAP kg/ha':dap,'MOP kg/ha':mop,'Other N kg/ha':other,'Organic Amendment':Math.random()<.2?'Yes':'No','Residue Fate':Math.random()<.7?'Removed':'Incorporated','Crop Protection kg/ha':2+Math.random()*3,'Biological Intervention':Math.random()<.3?'Yes':'No','Evidence ID':q==='issues'&&Math.random()<.15?'':'EVD-'+id+'-'+j,'Data Class':q==='good'?'Measured':(Math.random()<.3?'Estimated':'Measured'),'Notes':q==='issues'&&Math.random()<.1?'Review record':''})}S.lots.push({'Seed Lot ID':id,'Crop':'Rice','Variety/Hybrid':document.getElementById('seedType').value,'Season':document.getElementById('season').value,'State':'Demo State','District':'Demo District','Production Start':'2026-06-01','Production End':'2026-10-15','Harvested Seed kg':Math.round(harv),'Finished Saleable Seed kg':Math.round(harv*(.72+Math.random()*.12)),'Evidence ID':'EVD-'+id,'Data Class':q==='good'?'Measured':'Synthetic','Notes':'SYNTHETIC DEMO DATA'})}S.project={name:'ANVORA Synthetic Rice Pilot',season:document.getElementById('season').value,id:'ANVORA-SYN-'+Date.now()};renderTables();renderHome();renderValidation();showPage('validation')}
+function renderTables(){lotsTable.innerHTML=S.lots.length?'<table><tr><th>Lot</th><th>Crop</th><th>Harvest kg</th><th>Saleable kg</th><th>Evidence</th></tr>'+S.lots.slice(0,20).map(x=>`<tr><td>${x['Seed Lot ID']}</td><td>${x.Crop}</td><td>${x['Harvested Seed kg']}</td><td>${x['Finished Saleable Seed kg']}</td><td>${x['Evidence ID']||'—'}</td></tr>`).join('')+'</table>':'No lots loaded.';plotsTable.innerHTML=S.plots.length?'<table><tr><th>Plot</th><th>Area ha</th><th>Water</th><th>N kg/ha</th><th>Evidence</th></tr>'+S.plots.slice(0,25).map(x=>`<tr><td>${x['Plot ID']}</td><td>${x['Area ha']||'—'}</td><td>${x['Water Regime']}</td><td>${nval(x['Urea kg/ha'])}</td><td>${x['Evidence ID']||'—'}</td></tr>`).join('')+'</table>':'No plots loaded.'}
+function nval(x){let v=parseFloat(x)||0;return v}
+function renderHome(){homeData.textContent=S.plots.length?S.plots.length+' plots':'No dataset';homeDataSub.textContent=S.plots.length?(S.plots.reduce((a,x)=>a+(parseFloat(x['Area ha'])||0),0)).toFixed(1)+' ha loaded':'Create synthetic data or import CSV';homeMRV.textContent=S.calc?'Review':'Not ready'}
+function renderValidation(){let pass=0,issues=[];const area=S.plots.reduce((a,x)=>a+(parseFloat(x['Area ha'])||0),0);if(!S.plots.length){validationResults.innerHTML='<div class="notice">No dataset. Generate or import data first.</div>';return}function chk(name,ok,detail){ok?pass++:issues.push({name,detail})}chk('Required plot fields',S.plots.every(x=>x['Seed Lot ID']&&x['Plot ID']&&x['Water Regime']), 'One or more required identifiers/water fields are missing.');chk('Positive plot area',S.plots.every(x=>parseFloat(x['Area ha'])>0),'One or more plots have missing or non-positive area.');chk('Crop days',S.plots.every(x=>parseFloat(x['Crop Days'])>0),'One or more plots have missing crop days.');chk('Evidence IDs',S.plots.every(x=>x['Evidence ID']),'One or more plots have no evidence ID.');chk('Lot linkage',S.plots.every(x=>S.lots.some(l=>l['Seed Lot ID']===x['Seed Lot ID'])),'One or more plots do not link to a lot.');chk('Lot mass balance',S.lots.every(x=>nval(x['Finished Saleable Seed kg'])<=nval(x['Harvested Seed kg'])),'Finished saleable seed exceeds harvested seed for one or more lots.');vPlots.textContent=S.plots.length;vArea.textContent=area.toFixed(1)+' ha';vPass.textContent=pass;vIssues.textContent=issues.length;const score=Math.round((pass/(pass+issues.length))*100);gateBar.style.width=score+'%';gateTitle.textContent=issues.length?'Data Review Required':'Structural & logical checks passed';validationResults.innerHTML=(issues.length?'<div class="notice warning"><b>Open issues</b><ul>'+issues.map(i=>'<li><b>'+i.name+':</b> '+i.detail+'</li>').join('')+'</ul></div>':'<div class="notice"><b>Quality gate passed for prototype validation.</b> Calculation can proceed, subject to factor/methodology/evidence review.</div>')+'<h3>Checks completed</h3><table><tr><th>Check</th><th>Status</th></tr>'+[['Required plot fields',S.plots.every(x=>x['Seed Lot ID']&&x['Plot ID']&&x['Water Regime'])],['Positive plot area',S.plots.every(x=>parseFloat(x['Area ha'])>0)],['Crop days',S.plots.every(x=>parseFloat(x['Crop Days'])>0)],['Evidence IDs',S.plots.every(x=>x['Evidence ID'])],['Lot linkage',S.plots.every(x=>S.lots.some(l=>l['Seed Lot ID']===x['Seed Lot ID']))],['Lot mass balance',S.lots.every(x=>nval(x['Finished Saleable Seed kg'])<=nval(x['Harvested Seed kg']))]].map(x=>'<tr><td>'+x[0]+'</td><td>'+(x[1]?'<span class="pill">Pass</span>':'<span class="pill warn">Review</span>')+'</td></tr>').join('')+'</table>'}
+function loadControls(){productVersion.value=S.controls.productVersion;methodVersion.value=S.controls.methodVersion;factorVersion.value=S.controls.factorVersion;gwpVersion.value=S.controls.gwpVersion;regCH4.textContent=(efCH4.value||'120')+' kg CH₄/ha';regN2O.textContent=(efN2O.value||'.01')+' kg N₂O-N/kg N';regEnergy.textContent=(efEnergy.value||'.7')+' kg CO₂e/kWh';regPost.textContent=(efPost.value||'45')+' kg CO₂e/t seed';if(S.calc)fingerprint.innerHTML='<b>Calculation fingerprint</b><br>Run ID: <b>'+esc(S.calc.runId)+'</b>';}
+function saveControls(){
+S.controls={
+productVersion:productVersion.value.trim()||'ANVORA v1.4',
+methodVersion:methodVersion.value.trim()||'RICE-PROTOTYPE v0.1',
+factorVersion:factorVersion.value.trim()||'EF-REGISTRY v0.1',
+gwpVersion:gwpVersion.value.trim()||'Prototype GWP set'};
+alert('Scientific control versions saved for this browser session.');
+}
+function calculate(){
+if(!S.plots.length){alert('Load or generate data first.');return}
+renderValidation();
+let area=0,ch4=0,n2o=0,energy=0,post=0,n=0;
+for(const p of S.plots){
+ let ha=parseFloat(p['Area ha'])||0; area+=ha;
+ let f=parseFloat(efCH4.value)||0;
+ let water=(p['Water Regime']||'').toLowerCase();
+ let wf=water.includes('awd')?0.55:water.includes('intermittent')?0.75:water.includes('drainage')?0.65:1;
+ ch4+=ha*f*wf;
+ let N=(nval(p['Urea kg/ha'])*.46+nval(p['DAP kg/ha'])*.18+nval(p['MOP kg/ha'])*0+nval(p['Other N kg/ha']));
+ n+=N*ha;
+ n2o+=N*ha*(parseFloat(efN2O.value)||0)*44/28;
+ energy+=ha*18*(parseFloat(efEnergy.value)||0);
+}
+post=S.lots.reduce((a,x)=>a+nval(x['Finished Saleable Seed kg'])/1000,0)*(parseFloat(efPost.value)||0);
+let ch4co2e=ch4*28,n2oco2e=n2o,tot=ch4co2e+n2oco2e+energy+post;
+let finished=S.lots.reduce((a,x)=>a+nval(x['Finished Saleable Seed kg']),0)/1000;
+let runId='ANV-'+new Date().toISOString().replace(/\D/g,'').slice(0,14)+'-'+Math.random().toString(36).slice(2,8).toUpperCase();
+S.calc={runId,area,ch4,ch4co2e,n2o:n2oco2e,energy,post,total:tot,finished,intensity:finished?tot/(finished*1000):0,
+factors:{CH4:efCH4.value,N2O:efN2O.value,Energy:efEnergy.value,Post:efPost.value},
+timestamp:new Date().toISOString(),controls:{...S.controls}};
+calcOutput.innerHTML='<div class="grid g4">'+
+[['CH₄ CO₂e',ch4co2e.toFixed(1)+' kg'],['N₂O CO₂e',n2oco2e.toFixed(1)+' kg'],['Energy',energy.toFixed(1)+' kg'],['Post-harvest',post.toFixed(1)+' kg']]
+.map(x=>'<div class="card"><div class="kicker">'+x[0]+'</div><div class="metric">'+x[1]+'</div></div>').join('')+
+'</div><div class="card" style="margin-top:16px"><h2>Portfolio result</h2><table>'+
+'<tr><th>Metric</th><th>Result</th></tr><tr><td>Total prototype emissions</td><td>'+tot.toFixed(1)+' kg CO₂e</td></tr>'+
+'<tr><td>Finished saleable seed</td><td>'+finished.toFixed(2)+' t</td></tr><tr><td>Intensity</td><td>'+S.calc.intensity.toFixed(4)+' kg CO₂e / kg finished seed</td></tr>'+
+'<tr><td>Calculation Run ID</td><td>'+runId+'</td></tr></table></div>'+
+'<div class="notice warning"><b>Scientific control:</b> This calculation is tied to the methodology, factor registry and GWP versions shown in the Scientific Control panel. Prototype factors remain unapproved and are not a certification basis.</div>';
+fingerprint.innerHTML='<b>Calculation fingerprint</b><br>'+
+'Dataset: '+esc(S.project.id||'—')+'<br>'+
+'Methodology: '+esc(S.controls.methodVersion)+'<br>'+
+'Factor Registry: '+esc(S.controls.factorVersion)+'<br>'+
+'GWP Set: '+esc(S.controls.gwpVersion)+'<br>'+
+'Engine: '+esc(S.controls.productVersion)+'<br>'+
+'Run ID: <b>'+runId+'</b><br>'+
+'Timestamp: '+esc(S.calc.timestamp);
+renderHome();showPage('calculation');
+}
+
+function renderPassport(){
+if(!S.calc){passportTitle.textContent='No calculation available';passportBody.textContent='Run calculation first.';return}
+passportTitle.textContent=(S.project.name||'ANVORA Project')+' — Climate Passport';
+passportBody.innerHTML='<table><tr><th>Field</th><th>Value</th></tr>'+
+'<tr><td>Dataset</td><td>'+esc(S.project.id||'—')+'</td></tr>'+
+'<tr><td>Project</td><td>'+esc(S.project.name||'—')+'</td></tr>'+
+'<tr><td>Area</td><td>'+S.calc.area.toFixed(1)+' ha</td></tr>'+
+'<tr><td>Finished seed</td><td>'+S.calc.finished.toFixed(2)+' t</td></tr>'+
+'<tr><td>Prototype emissions</td><td>'+S.calc.total.toFixed(1)+' kg CO₂e</td></tr>'+
+'<tr><td>Intensity</td><td>'+S.calc.intensity.toFixed(4)+' kg CO₂e/kg finished seed</td></tr>'+
+'<tr><td>Product / Engine</td><td>'+esc(S.calc.controls.productVersion)+'</td></tr>'+
+'<tr><td>Methodology</td><td>'+esc(S.calc.controls.methodVersion)+'</td></tr>'+
+'<tr><td>Factor Registry</td><td>'+esc(S.calc.controls.factorVersion)+'</td></tr>'+
+'<tr><td>GWP Set</td><td>'+esc(S.calc.controls.gwpVersion)+'</td></tr>'+
+'<tr><td>Calculation Run ID</td><td>'+esc(S.calc.runId)+'</td></tr>'+
+'<tr><td>Calculation timestamp</td><td>'+esc(S.calc.timestamp)+'</td></tr>'+
+'<tr><td>MRV status</td><td>Prototype — not independently verified</td></tr></table>'+
+'<div class="notice">This passport records the underlying dataset, assumptions, control versions and prototype calculation. It is not a carbon certificate, offset instrument or independent verification statement.</div>';
+}
+function downloadCSV(type){let arr=S[type],cols=type==='lots'?lotCols:plotCols;if(!arr.length){alert('No '+type+' data.');return}let csv=[cols.join(',')].concat(arr.map(o=>cols.map(c=>`"${String(o[c]??'').replaceAll('"','""')}"`).join(','))).join('\n');downloadText(type+'.csv',csv,'text/csv')}
+
+function downloadPassportPDF(){
+  if(!S.calc){alert('Run calculation first.');return}
+  if(!window.jspdf){alert('PDF library is unavailable. Use Print / Save PDF instead.');return}
+  renderPassport();
+  const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'pt',format:'a4'});
+  doc.setFontSize(20);doc.text('ANVORA Climate Passport',40,48);
+  doc.setFontSize(9);doc.text('ANVORA · Raja Vadlamani · Prototype / not independently verified',40,65);
+  let y=90;
+  [...document.querySelectorAll('#passportBody tr')].forEach(tr=>{
+    const cells=[...tr.querySelectorAll('th,td')].map(x=>x.innerText.trim());
+    if(cells.length<2)return;
+    const line=cells[0]+': '+cells.slice(1).join(' | ');
+    const lines=doc.splitTextToSize(line,515);
+    if(y+lines.length*12>800){doc.addPage();y=45}
+    doc.setFontSize(9);doc.text(lines,40,y);y+=Math.max(15,lines.length*11+4);
+  });
+  doc.save('ANVORA_Climate_Passport.pdf');
+}
+
+function downloadPassport(){if(!S.calc){alert('Run calculation first.');return}renderPassport();downloadText('ANVORA_Climate_Passport.txt',passportBody.innerText,'text/plain')}
+function addFeedback(){let t=fbText.value.trim();if(!t)return;S.feedback.push({date:new Date().toISOString(),category:fbCat.value,severity:fbSev.value,feedback:t});fbText.value='';renderFeedback()}
+function renderFeedback(){feedbackLog.innerHTML=S.feedback.length?'<table><tr><th>Date</th><th>Category</th><th>Severity</th><th>Feedback</th></tr>'+S.feedback.map(x=>'<tr><td>'+x.date.slice(0,10)+'</td><td>'+esc(x.category)+'</td><td>'+esc(x.severity)+'</td><td>'+esc(x.feedback)+'</td></tr>').join('')+'</table>':'<div class="muted">No feedback recorded in this browser.</div>'}
+function downloadFeedback(){if(!S.feedback.length){alert('No feedback recorded.');return}let csv='Date,Category,Severity,Feedback\n'+S.feedback.map(x=>[x.date,x.category,x.severity,x.feedback].map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');downloadText('ANVORA_validation_log.csv',csv,'text/csv')}
+function downloadText(name,text,type){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
+function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+
+function renderEvidence(){
+  const plots=S.plots.length, covered=S.plots.filter(p=>String(p['Evidence ID']||'').trim()).length;
+  const cov=plots?Math.round(covered/plots*100):0;
+  evPlots.textContent=plots; evCovered.textContent=covered; evCoverage.textContent=cov+'%';
+  evStatus.textContent=plots?(cov===100?'Complete':cov>=90?'Review':'Gap'): 'Not assessed';
+  const ids=[...new Set(S.plots.map(p=>String(p['Evidence ID']||'').trim()).filter(Boolean))];
+  evidenceTable.innerHTML='<tr><th>Evidence ID</th><th>Record Type</th><th>Source Class</th><th>Coverage</th><th>Status</th></tr>'+
+    (ids.length?ids.slice(0,100).map(id=>'<tr><td>'+esc(id)+'</td><td>Plot activity</td><td>Recorded / imported</td><td>Linked</td><td><span class="pill">Present</span></td></tr>').join(''):'<tr><td colspan="5" class="muted">No evidence records loaded.</td></tr>');
+}
+function renderUncertainty(){
+  if(!S.plots.length){dataConfidence.textContent='—';overallConfidence.textContent='—';uncertaintyFlags.innerHTML='Load a dataset first.';return}
+  const ev=S.plots.filter(p=>String(p['Evidence ID']||'').trim()).length/S.plots.length;
+  const areas=S.plots.filter(p=>parseFloat(p['Area ha'])>0).length/S.plots.length;
+  const days=S.plots.filter(p=>parseFloat(p['Crop Days'])>0).length/S.plots.length;
+  const score=Math.round((ev*.4+areas*.3+days*.3)*100);
+  dataConfidence.textContent=score+'%';
+  factorConfidence.textContent='Prototype';
+  methodConfidence.textContent='Prototype';
+  overallConfidence.textContent=score===100?'Reviewable':score>=90?'Conditional':'Low';
+  const flags=[];
+  if(ev<1) flags.push('Evidence coverage is incomplete.');
+  if(areas<1) flags.push('One or more plot areas are missing or invalid.');
+  if(days<1) flags.push('One or more crop-duration records are missing or invalid.');
+  if(S.controls.factorVersion.includes('PROTOTYPE')||S.controls.factorVersion.includes('v0.1')) flags.push('Factor registry is still prototype-controlled.');
+  if(S.controls.methodVersion.includes('PROTOTYPE')||S.controls.methodVersion.includes('v0.1')) flags.push('Methodology is still prototype-controlled.');
+  uncertaintyFlags.innerHTML=flags.length?'<ul>'+flags.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'No structural uncertainty flags detected; scientific uncertainty still requires formal quantification.';
+}
+function renderMRV(){
+  const dataOk=S.plots.length>0&&S.lots.length>0;
+  const evidenceOk=S.plots.length>0&&S.plots.every(p=>String(p['Evidence ID']||'').trim());
+  const methodOk=!S.controls.methodVersion.toLowerCase().includes('prototype');
+  mrvData.textContent=dataOk?'Present':'Missing';
+  mrvEvidence.textContent=evidenceOk?'Covered':'Gap';
+  mrvMethod.textContent=methodOk?'Controlled':'Prototype';
+  const checks=[
+    ['Dataset loaded',dataOk],
+    ['Lot / plot linkage',S.plots.length>0&&S.plots.every(p=>S.lots.some(l=>l['Seed Lot ID']===p['Seed Lot ID']))],
+    ['Mass balance',S.lots.length>0&&S.lots.every(l=>nval(l['Finished Saleable Seed kg'])<=nval(l['Harvested Seed kg']))],
+    ['Evidence coverage',evidenceOk],
+    ['Methodology controlled',methodOk],
+    ['Factor registry controlled',!S.controls.factorVersion.toLowerCase().includes('prototype')],
+    ['Calculation run',!!S.calc]
+  ];
+  const passed=checks.filter(x=>x[1]).length;
+  mrvOverall.textContent=passed===checks.length?'Review-ready':passed>=5?'Conditional':'Not ready';
+  mrvChecklist='<table><tr><th>Readiness control</th><th>Status</th></tr>'+checks.map(x=>'<tr><td>'+x[0]+'</td><td>'+(x[1]?'<span class="pill">Pass</span>':'<span class="pill warn">Review</span>')+'</td></tr>').join('')+'</table>';
+}
+function renderIntelligence(){
+  if(!S.calc){hotCH4.textContent='—';hotN2O.textContent='—';hotOther.textContent='—';return}
+  const total=S.calc.total||1;
+  hotCH4.textContent=(S.calc.ch4co2e/total*100).toFixed(1)+'%';
+  hotN2O.textContent=(S.calc.n2o/total*100).toFixed(1)+'%';
+  hotOther.textContent=((S.calc.energy+S.calc.post)/total*100).toFixed(1)+'%';
+}
+function runScenario(){
+  if(!S.calc){alert('Run the baseline calculation first.');return}
+  const base=S.calc;
+  const a=(parseFloat(scCH4.value)||1),b=(parseFloat(scN2O.value)||1),c=(parseFloat(scEnergy.value)||1),d=(parseFloat(scPost.value)||1);
+  const scenario=base.ch4co2e*a+base.n2o*b+base.energy*c+base.post*d;
+  const delta=scenario-base.total;
+  const pct=base.total?delta/base.total*100:0;
+  scenarioOutput.innerHTML='<div class="card"><b>Illustrative scenario total:</b> '+scenario.toFixed(1)+' kg CO₂e<br><b>Change vs baseline:</b> '+delta.toFixed(1)+' kg CO₂e ('+pct.toFixed(1)+'%)</div>';
+}
+
+function saveProject(){S.project={name:projectName.value,season:season.value,id:datasetId.value};renderHome();alert('Project details saved for this browser session.')}
+function clearData(){if(!confirm('Clear current dataset and calculation?'))return;S.lots=[];S.plots=[];S.calc=null;renderTables();renderHome();renderValidation();renderPassport()}
+renderHome();
+</script>
+
+
+<section id="leadershipExplorer" class="card">
+  <div class="eyebrow">CLIMATE INTELLIGENCE EXPLORER</div>
+  <h2>Find where the footprint is concentrated</h2>
+  <p class="muted">Explore the loaded dataset by geography and hybrid. Absolute emissions and intensity are shown separately so larger production volumes are not confused with higher carbon intensity.</p>
+  <div class="filter-grid">
+    <div><label>State<select id="liState"><option value="">All states</option></select></label></div>
+    <div><label>District<select id="liDistrict"><option value="">All districts</option></select></label></div>
+    <div><label>Hybrid / variety<select id="liHybrid"><option value="">All hybrids</option></select></label></div>
+    <div><label>Water regime<select id="liWater"><option value="">All water regimes</option></select></label></div>
+    <div><label>View<select id="liView"><option value="geography">Geography</option><option value="hybrid">Hybrid / variety</option><option value="plot">Plot detail</option></select></label></div>
+    <div><label>Metric<select id="liMetric"><option value="total">Total tCO₂e</option><option value="intensity">kg CO₂e/kg seed</option><option value="area">kg CO₂e/ha</option></select></label></div>
+  </div>
+  <div id="liSummary" class="exec-kpis" style="margin-top:14px"></div>
+  <div class="chart-card">
+    <h3>Hotspot ranking</h3>
+    <div id="liBars"></div>
+  </div>
+  <div class="chart-card table-wrap">
+    <h3>Drilldown table</h3>
+    <div id="liTable"><p class="muted">Load a dataset to populate the explorer.</p></div>
+  </div>
+  <p class="report-note">Interpretation: differences by hybrid are associations in the loaded dataset. ANVORA does not infer that a hybrid itself causes higher emissions without causal evidence.</p>
+</section>
+
+<section id="leadership" class="card"><div class="exec-hero"><h1>ANVORA Executive Climate Intelligence</h1><p>Where are emissions concentrated, what is driving them, and what requires management attention?</p></div><div class="exec-toolbar"><button onclick="exportLeadershipExcel()">Download Leadership Excel</button><button onclick="exportLeadershipPDF()">Download Leadership PDF</button><button onclick="printReport('leadership')">Print / Save PDF</button></div>
+  <div class="eyebrow">ANVORA · LEADERSHIP MIS</div>
+  <h1>Executive climate intelligence</h1>
+  <p class="muted">A management view of coverage, footprint, intensity, evidence and priority actions. Findings are separated from illustrative scenarios and assumptions.</p>
+
+  <div class="grid">
+    <div><strong>Farmers / records</strong><br><span id="misFarmers" class="metric">—</span></div>
+    <div><strong>Area covered</strong><br><span id="misArea" class="metric">—</span></div>
+    <div><strong>Finished seed</strong><br><span id="misSeed" class="metric">—</span></div>
+    <div><strong>Total footprint</strong><br><span id="misTotal" class="metric">—</span></div>
+    <div><strong>Emission intensity</strong><br><span id="misIntensity" class="metric">—</span></div>
+    <div><strong>Evidence coverage</strong><br><span id="misEvidence" class="metric">—</span></div>
+  </div>
+
+  <h2 style="margin-top:20px">Management attention</h2>
+  <div class="grid">
+    <div><strong>Critical exceptions</strong><br><span id="misCritical" class="metric">—</span></div>
+    <div><strong>Review items</strong><br><span id="misReview" class="metric">—</span></div>
+    <div><strong>MRV readiness</strong><br><span id="misMRV" class="metric">—</span></div>
+    <div><strong>Calculation run</strong><br><span id="misRun">—</span></div>
+  </div>
+
+  <h2 style="margin-top:20px">Top climate hotspots</h2>
+  <div id="misHotspots"><p class="muted">Calculate a dataset to populate hotspots.</p></div>
+
+  <h2 style="margin-top:20px">Management action centre</h2>
+  <div id="misActions">
+    <p class="muted">ANVORA will surface data-quality and calculation-control priorities here. Recommendations must be treated according to their evidence and scenario status.</p>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <strong>Decision rule</strong>
+    <p class="muted">Measured findings, modelled insights and illustrative scenarios are intentionally kept distinct. Scenario results are sensitivity tests, not verified reductions or forecasts.</p>
+  </div>
+</section>
+
+
+<script id="anvora-v21-engine">
+function liEscape(v){return esc(v==null?'':v)}
+function uniqueVals(arr){return [...new Set(arr.map(v=>String(v??'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b))}
+function fillSelect(id, vals){
+  const el=document.getElementById(id); if(!el)return;
+  const current=el.value; el.innerHTML='<option value="">All</option>'+vals.map(v=>'<option value="'+liEscape(v)+'">'+liEscape(v)+'</option>').join('');
+  if(vals.includes(current)) el.value=current;
+}
+function lotIndex(){
+  const m={}; (S.lots||[]).forEach(l=>m[String(l['Seed Lot ID']||'')]=l); return m;
+}
+function plotEmissionRows(){
+  const lm=lotIndex();
+  const f=parseFloat(efCH4.value)||120, fn=parseFloat(efN2O.value)||.01, fe=parseFloat(efEnergy.value)||.7, fp=parseFloat(efPost.value)||45;
+  return (S.plots||[]).map(p=>{
+    const lot=lm[String(p['Seed Lot ID']||'')]||{};
+    const area=nval(p['Area ha']), days=nval(p['Crop Days'])||120;
+    const water=String(p['Water Regime']||'Unknown');
+    const wl=water.toLowerCase();
+    const wf=wl.includes('awd')||wl.includes('multiple drainage')?.55:wl.includes('single drainage')?.71:wl.includes('intermittent')?.75:wl.includes('rainfed')?.55:1;
+    const ch4=area*f*wf;
+    const N=(nval(p['Urea kg/ha'])*.46+nval(p['DAP kg/ha'])*.18+nval(p['Other N kg/ha']));
+    const n2o=N*area*fn*44/28;
+    const energy=area*18*fe;
+    const finished=nval(lot['Finished Saleable Seed kg']);
+    const post=(finished/1000)*fp;
+    const totalKg=ch4*28+n2o+energy+post;
+    const baseCh4=area*f*1;
+    const baseKg=baseCh4*28+n2o+energy+post;
+    return {
+      plot:String(p['Plot ID']||''), lot:String(p['Seed Lot ID']||''), village:String(p['Village']||''),
+      district:String(p['District']||lot['District']||''), state:String(lot['State']||''),
+      hybrid:String(lot['Variety/Hybrid']||''), water, days, area, finished,
+      evidence:String(p['Evidence ID']||'').trim(), totalKg, baseKg,
+      reductionKg:Math.max(0,baseKg-totalKg), ch4Kg:ch4*28, n2oKg:n2o, energyKg:energy, postKg:post
+    };
+  });
+}
+function aggregateRows(rows,key){
+  const m={};
+  rows.forEach(r=>{
+    const k=r[key]||'Unknown';
+    if(!m[k])m[k]={name:k,area:0,finished:0,totalKg:0,baseKg:0,reductionKg:0,ch4Kg:0,n2oKg:0,energyKg:0,postKg:0,plots:0,evidence:0};
+    const x=m[k]; x.area+=r.area;x.finished+=r.finished;x.totalKg+=r.totalKg;x.baseKg+=r.baseKg;x.reductionKg+=r.reductionKg;
+    x.ch4Kg+=r.ch4Kg;x.n2oKg+=r.n2oKg;x.energyKg+=r.energyKg;x.postKg+=r.postKg;x.plots++;if(r.evidence)x.evidence++;
+  });
+  return Object.values(m).map(x=>({...x,totalT:x.totalKg/1000,intensity:x.finished?x.totalKg/(x.finished*1000):0,areaIntensity:x.area?x.totalKg/x.area:0,evidencePct:x.plots?x.evidence/x.plots*100:0}));
+}
+function refreshLeadershipExplorer(){
+  const rows=plotEmissionRows();
+  fillSelect('liState',uniqueVals(rows.map(r=>r.state)));
+  fillSelect('liDistrict',uniqueVals(rows.map(r=>r.district)));
+  fillSelect('liHybrid',uniqueVals(rows.map(r=>r.hybrid)));
+  fillSelect('liWater',uniqueVals(rows.map(r=>r.water)));
+  const state=document.getElementById('liState')?.value||'', district=document.getElementById('liDistrict')?.value||'', hybrid=document.getElementById('liHybrid')?.value||'', water=document.getElementById('liWater')?.value||'', view=document.getElementById('liView')?.value||'geography', metric=document.getElementById('liMetric')?.value||'total';
+  const filtered=rows.filter(r=>(!state||r.state===state)&&(!district||r.district===district)&&(!hybrid||r.hybrid===hybrid)&&(!water||r.water===water));
+  const key=view==='hybrid'?'hybrid':view==='plot'?'plot':'state';
+  const data=view==='plot'?filtered.map(r=>({name:r.plot,area:r.area,finished:r.finished,totalKg:r.totalKg,totalT:r.totalKg/1000,intensity:r.finished?r.totalKg/(r.finished*1000):0,areaIntensity:r.area?r.totalKg/r.area:0,plots:1,evidence:r.evidence?1:0,evidencePct:r.evidence?100:0,reductionKg:r.reductionKg})):aggregateRows(filtered,key);
+  const totalKg=filtered.reduce((a,r)=>a+r.totalKg,0), finished=filtered.reduce((a,r)=>a+r.finished,0), area=filtered.reduce((a,r)=>a+r.area,0), reduction=filtered.reduce((a,r)=>a+r.reductionKg,0);
+  const metricValue=x=>metric==='intensity'?x.intensity:metric==='area'?x.areaIntensity:x.totalT;
+  data.sort((a,b)=>metricValue(b)-metricValue(a));
+  const top=data.slice(0,8), max=Math.max(...top.map(metricValue),0);
+  const metricLabel=metric==='intensity'?'kg CO₂e/kg':metric==='area'?'kg CO₂e/ha':'tCO₂e';
+  document.getElementById('liSummary').innerHTML=[
+    ['Area covered',area.toFixed(1)+' ha'],['Finished seed',(finished/1000).toFixed(2)+' t'],['Footprint',(totalKg/1000).toFixed(2)+' tCO₂e'],['Intensity',finished?(totalKg/(finished*1000)).toFixed(4)+' kg/kg':'—'],['Modeled reduction proxy',(reduction/1000).toFixed(2)+' tCO₂e'],['Records',filtered.length]
+  ].map(x=>'<div class="exec-kpi"><div class="exec-kpi-label">'+x[0]+'</div><div class="exec-kpi-value">'+x[1]+'</div></div>').join('');
+  document.getElementById('liBars').innerHTML=top.length?top.map(x=>{
+    const v=metricValue(x),pct=max?v/max*100:0;
+    return '<div class="bar-row"><div><strong>'+liEscape(x.name)+'</strong></div><div class="mini-bar"><span style="width:'+pct.toFixed(1)+'%"></span></div><div style="text-align:right">'+v.toFixed(metric==='total'?2:4)+'<br><span class="muted">'+metricLabel+'</span></div></div>';
+  }).join(''):'<p class="muted">No records match the selected filters.</p>';
+  document.getElementById('liTable').innerHTML=data.length?'<table class="explorer-table"><thead><tr><th>Level</th><th>Area ha</th><th>Finished seed t</th><th>Total tCO₂e</th><th>kg CO₂e/kg</th><th>kg CO₂e/ha</th><th>Evidence</th><th>Modeled reduction proxy t</th></tr></thead><tbody>'+
+    data.slice(0,100).map(x=>'<tr><td><strong>'+liEscape(x.name)+'</strong></td><td>'+x.area.toFixed(2)+'</td><td>'+(x.finished/1000).toFixed(2)+'</td><td>'+x.totalT.toFixed(2)+'</td><td>'+x.intensity.toFixed(4)+'</td><td>'+x.areaIntensity.toFixed(1)+'</td><td>'+x.evidencePct.toFixed(0)+'%</td><td>'+(x.reductionKg/1000).toFixed(2)+'</td></tr>').join('')+
+    '</tbody></table>':'<p class="muted">No records match the selected filters.</p>';
+}
+function refreshAuditorScreen(){
+  const rows=plotEmissionRows();
+  const assessed=rows.length;
+  let eligible=0, review=0, notEligible=0;
+  rows.forEach(r=>{
+    const hasEvidence=!!r.evidence, improved=/awd|multiple drainage|single drainage|intermittent/i.test(r.water);
+    if(hasEvidence&&improved&&r.area>0&&r.days>0) eligible++;
+    else if(r.area<=0||r.days<=0||!hasEvidence) review++;
+    else notEligible++;
+  });
+  const totalReduction=rows.reduce((a,r)=>a+r.reductionKg,0)/1000;
+  document.getElementById('audScreenKpis').innerHTML=[
+    ['Plots assessed',assessed],['Potentially applicable',eligible],['Development / evidence review',review],['Not eligible on screen',notEligible],['Modeled gross reduction proxy',totalReduction.toFixed(2)+' tCO₂e']
+  ].map(x=>'<div class="exec-kpi"><div class="exec-kpi-label">'+x[0]+'</div><div class="exec-kpi-value">'+x[1]+'</div></div>').join('');
+  document.getElementById('audScreenTable').innerHTML=rows.length?'<table class="explorer-table"><thead><tr><th>Plot</th><th>State</th><th>District</th><th>Hybrid</th><th>Water regime</th><th>Evidence</th><th>Screen status</th><th>Baseline proxy tCO₂e</th><th>Project tCO₂e</th><th>Gross reduction proxy tCO₂e</th><th>Additionality</th><th>Leakage</th><th>Uncertainty deduction</th></tr></thead><tbody>'+
+    rows.map(r=>{
+      const hasEvidence=!!r.evidence, improved=/awd|multiple drainage|single drainage|intermittent/i.test(r.water);
+      const status=hasEvidence&&improved&&r.area>0&&r.days>0?'Potentially applicable':(r.area<=0||r.days<=0||!hasEvidence?'Review required':'Not applicable on current screen');
+      const cls=status==='Potentially applicable'?'status-pass':status==='Review required'?'status-review':'status-not';
+      return '<tr><td>'+liEscape(r.plot)+'</td><td>'+liEscape(r.state)+'</td><td>'+liEscape(r.district)+'</td><td>'+liEscape(r.hybrid)+'</td><td>'+liEscape(r.water)+'</td><td>'+(hasEvidence?'Present':'Missing')+'</td><td><span class="status-chip '+cls+'">'+status+'</span></td><td>'+(r.baseKg/1000).toFixed(3)+'</td><td>'+(r.totalKg/1000).toFixed(3)+'</td><td>'+(r.reductionKg/1000).toFixed(3)+'</td><td>Not assessed</td><td>Not assessed</td><td>Not assessed</td></tr>';
+    }).join('')+'</tbody></table>':'<p class="muted">Load a dataset to populate the screening.</p>';
+}
+function refreshANVORAv21(){
+  try{refreshLeadershipExplorer();refreshAuditorScreen();}catch(e){console.warn('ANVORA v2.1 dashboard refresh:',e)}
+}
+['liState','liDistrict','liHybrid','liWater','liView','liMetric'].forEach(id=>document.addEventListener('change',e=>{if(e.target&&e.target.id===id)refreshLeadershipExplorer()}));
+</script>
+
+<script>window.addEventListener("load",()=>{refreshExecutiveViews();refreshANVORAv21();});</script>
+</body>
+</html>
