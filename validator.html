@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rice Seed Climate Ledger v7.0 — Real Data Import</title>
+<style>
+:root{--g:#18552e;--bg:#f4f7f3;--ink:#193223;--muted:#65736a;--line:#d8e1da;--card:#fff;--amber:#fff6da;--red:#fff0ee}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif}.wrap{max-width:1180px;margin:auto}
+header{background:linear-gradient(135deg,#123c23,#28663a);color:#fff;padding:30px 20px}.brand{font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.85}h1{font-size:32px;margin:8px 0}.hero{line-height:1.5;max-width:920px}
+main{padding:18px 0 50px}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:20px;margin:15px 0;box-shadow:0 5px 20px #1832230b}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px}
+label{font-size:13px;font-weight:750;display:block;margin-bottom:6px}input,textarea{width:100%;padding:10px;border:1px solid #cbd7ce;border-radius:8px;font-size:14px}textarea{min-height:150px;font-family:ui-monospace,monospace}
+button{border:0;border-radius:8px;padding:10px 15px;font-weight:800;cursor:pointer}.primary{background:var(--g);color:#fff}.secondary{background:#e8efe9;color:var(--g)}
+.note{background:var(--amber);border-left:4px solid #c79824;padding:12px 15px;font-size:13px;line-height:1.5}.good{background:#edf7ee;border-left:4px solid var(--g)}.alert{background:var(--red);border-left:4px solid #b74a3d}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.kpi{background:#edf6ee;border-radius:12px;padding:14px}.num{font-size:24px;font-weight:850;margin-top:4px}.small{font-size:11px;color:var(--muted)}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f1f5f2}.scroll{overflow:auto}.tag{display:inline-block;background:#eaf4eb;color:var(--g);padding:5px 9px;border-radius:18px;font-size:11px;font-weight:850}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+</style></head><body>
+<header><div class="wrap"><div class="brand">Rice Seed Climate Ledger • v7.0</div><h1>Real-Data Import & Validation</h1>
+<div class="hero">Paste CSV exports from production, energy, processing or lot records. The validator checks structure, mass balance, plot completeness and evidence coverage before a calculation is treated as ready.</div></div></header>
+<main class="wrap">
+<div class="card note"><b>Recommended workflow:</b> Download the v7 Excel template, populate the actual season, then use the same field structure here for validation. Do not paste confidential farmer or employee personal data.</div>
+<div class="card"><span class="tag">1 • Import</span><h2>Paste Lot Master CSV</h2>
+<label>CSV text</label><textarea id="csvLot">Seed Lot ID,Crop,Variety/Hybrid,Season,State,District,Production Start,Production End,Harvested Seed kg,Finished Saleable Seed kg,Evidence ID,Data Class,Notes
+RSL-2026-001,Rice,USRH-XX,Kharif 2026,,,,,96000,86000,EVID-001,Recorded,Illustrative</textarea>
+<div class="actions"><button class="primary" onclick="validateAll()">Validate dataset</button></div></div>
+<div class="card"><span class="tag">2 • Plot data</span><h2>Paste Plot Data CSV</h2>
+<textarea id="csvPlot">Seed Lot ID,Plot ID,Village,District,Area ha,Crop Days,Water Regime,Pre-season Flooding,Drainage / AWD Events,Urea kg/ha,DAP kg/ha,MOP kg/ha,Other N kg/ha,Organic Amendment,Residue Fate,Crop Protection kg/ha,Biological Intervention,Evidence ID,Data Class,Notes
+RSL-2026-001,P1,,,12,112,Multiple drainage / AWD,No,4,160,50,0,0,None,Incorporated,0,Yes,EVID-P1,Recorded,Illustrative
+RSL-2026-001,P2,,,18,112,Single drainage,No,1,180,50,0,0,None,Removed,0,No,EVID-P2,Recorded,Illustrative
+RSL-2026-001,P3,,,10,112,Continuous flooding,No,0,200,50,0,0,None,Incorporated,0,Yes,EVID-P3,Recorded,Illustrative</textarea></div>
+<div class="card"><span class="tag">3 • Validation report</span><div id="report"></div></div>
+</main>
+<script>
+function csv(s){let lines=s.trim().split(/\r?\n/);let head=lines[0].split(',').map(x=>x.trim());return lines.slice(1).filter(Boolean).map(line=>{let a=line.split(',');let o={};head.forEach((h,i)=>o[h]=(a[i]||'').trim());return o})}
+function validateAll(){
+let lot=csv(document.getElementById('csvLot').value),p=csv(document.getElementById('csvPlot').value),issues=[],passes=[];
+if(!lot.length)issues.push('Lot Master has no records.');else passes.push('Lot Master contains '+lot.length+' record(s).');
+const req=['Seed Lot ID','Plot ID','Area ha','Crop Days','Water Regime','Urea kg/ha','DAP kg/ha','Evidence ID'];
+req.forEach(x=>{if(!(x in (p[0]||{})))issues.push('Plot Data missing required column: '+x)});
+p.forEach((r,i)=>{
+if(!(Number(r['Area ha'])>0))issues.push('Plot '+(r['Plot ID']||i+1)+': area missing or <= 0.');
+if(!(Number(r['Crop Days'])>0))issues.push('Plot '+(r['Plot ID']||i+1)+': crop days missing or <= 0.');
+if(!r['Water Regime'])issues.push('Plot '+(r['Plot ID']||i+1)+': water regime missing.');
+if(!r['Evidence ID'])issues.push('Plot '+(r['Plot ID']||i+1)+': Evidence ID missing.');
+});
+const total=p.reduce((a,r)=>a+(Number(r['Area ha'])||0),0);
+if(total>0)passes.push('Plot area total: '+total.toFixed(2)+' ha.');
+const lotId=(lot[0]||{})['Seed Lot ID'];if(lotId && p.some(r=>r['Seed Lot ID']!==lotId))issues.push('Plot Seed Lot ID does not consistently match Lot Master.');
+if(lot[0]){
+let h=Number(lot[0]['Harvested Seed kg']),s=Number(lot[0]['Finished Saleable Seed kg']);
+if(h>0&&s>0){if(s<=h)passes.push('Mass balance: saleable seed <= harvested seed.');else issues.push('Mass balance failure: saleable seed exceeds harvested seed.');}
+else issues.push('Lot Master harvested/saleable seed quantities missing.');
+}
+document.getElementById('report').innerHTML=`<div class="kpis"><div class="kpi">Plots<div class="num">${p.length}</div></div><div class="kpi">Area<div class="num">${total.toFixed(1)} ha</div></div><div class="kpi">Passes<div class="num">${passes.length}</div></div><div class="kpi">Open issues<div class="num">${issues.length}</div></div></div>
+<h3>Passes</h3><ul>${passes.map(x=>'<li>'+x+'</li>').join('')}</ul><h3>Open issues</h3>${issues.length?'<ul>'+issues.map(x=>'<li>'+x+'</li>').join('')+'</ul>':'<div class="card good"><b>No structural issues detected in the imported sample.</b></div>'}
+<h3>Interpretation</h3><p class="small">This validator checks data structure and basic consistency only. It does not certify the carbon factors, methodology applicability or evidence authenticity.</p>`;
+}
+validateAll();
+</script></body></html>
