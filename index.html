@@ -21,6 +21,8 @@ textarea,input,select{width:100%;padding:9px;border:1px solid #cfdcd7;border-rad
 .bar{height:9px;background:#e8efec;border-radius:99px;overflow:hidden}.bar>span{display:block;height:100%;background:var(--accent)}
 footer{border-top:1px solid var(--line);padding:18px 0;color:var(--muted);font-size:12px}
 @media(max-width:850px){.g4,.g3,.g2{grid-template-columns:1fr 1fr}}@media(max-width:560px){.g4,.g3,.g2{grid-template-columns:1fr}.brand{font-size:23px}}
+
+.persona-nav{display:flex;gap:8px;flex-wrap:wrap;padding-top:10px;padding-bottom:8px}.persona-nav .persona{font-weight:700}.secondary-nav{display:flex;gap:6px;flex-wrap:wrap}.secondary-nav button{font-size:.88rem}
 </style>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script>
@@ -209,7 +211,7 @@ function exportAuditorPDF(){anvoraPDF("auditor","ANVORA Auditor / Verifier Revie
 function printReport(id){
   const s=document.getElementById(id);if(!s)return;
   const w=window.open("","_blank");
-  w.document.write("<html><head><title>ANVORA Report</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#172033}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:7px}.exec-toolbar{display:none}</style>
+  w.document.write(`<html><head><title>ANVORA Report</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#172033}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:7px}.exec-toolbar{display:none}</style>
 <style id="anvora-v21-responsive">
 .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .table-wrap table{min-width:720px}
@@ -239,7 +241,134 @@ function printReport(id){
   .exec-toolbar button{width:100%}
 }
 </style>
-</head><body>"+s.innerHTML+"</body></html>");
+</head><body>"+s.innerHTML+"
+
+
+<script id="anvora-v44-sentinel1-processing">
+function isoLocalToUtc(v){return v?new Date(v).toISOString():null;}
+function s1Evalscript(){return `//VERSION=3
+function setup(){return {input:[{bands:["VV","VH","dataMask"]}],output:[{id:"backscatter",bands:2,sampleType:"FLOAT32"},{id:"dataMask",bands:1}]};}
+function evaluatePixel(samples){return {backscatter:[samples.VV,samples.VH],dataMask:[samples.dataMask]};}`;}
+function selectedAcqForS1(){const o=window.ANVORA_EO_OBSERVATION;if(o&&o.acquisitionId)return o;const item=selectedEOItem();if(!item)return null;return {plotId:acqPayload().plotId,acquisitionId:item.id,acquisitionDateTime:item.datetime,requestedBbox:acqPayload().bbox};}
+function loadSelectedAcqIntoS1(){const o=selectedAcqForS1();if(!o){alert('Select an acquisition in v4.3 first.');return;}const d=o.acquisitionDateTime?new Date(o.acquisitionDateTime):new Date(),before=new Date(d-60000),after=new Date(d.getTime()+60000);const fmt=x=>{const z=new Date(x),p=n=>String(n).padStart(2,'0');return z.getFullYear()+'-'+p(z.getMonth()+1)+'-'+p(z.getDate())+'T'+p(z.getHours())+':'+p(z.getMinutes());};document.getElementById('s1From').value=fmt(before);document.getElementById('s1To').value=fmt(after);document.getElementById('s1Status').innerHTML='<div class="control-row"><div><b>Selected acquisition loaded</b><small>'+esc(o.acquisitionId||'—')+' · '+esc(fmtDate(o.acquisitionDateTime))+'</small></div><span class="pill">Linked</span></div>';buildS1StatsRequest();}
+function s1StatsPayload(){const o=selectedAcqForS1(),bbox=o?.requestedBbox||acqPayload().bbox,from=isoLocalToUtc(document.getElementById('s1From').value),to=isoLocalToUtc(document.getElementById('s1To').value),coeff=document.getElementById('s1Coeff').value,res=Math.max(10,Number(document.getElementById('s1Resolution').value||10)),agg=document.getElementById('s1Agg').value,orbit=document.getElementById('s1Orbit').value,pol=document.getElementById('s1Pol').value,dataFilter={};if(orbit)dataFilter.orbitDirection=orbit;if(pol)dataFilter.polarization=pol;return {input:{bounds:{bbox,properties:{crs:'http://www.opengis.net/def/crs/EPSG/0/4326'}},data:[{type:'sentinel-1-grd',dataFilter,processing:{orthorectify:true,backCoeff:coeff}}]},aggregation:{timeRange:{from,to},aggregationInterval:{of:agg},evalscript:s1Evalscript(),resx:res,resy:res},calculations:{default:{statistics:{default:{percentiles:{k:[10,50,90]}}}}}};}
+function buildS1StatsRequest(){const p=s1StatsPayload(),out={endpoint:'https://sh.dataspace.copernicus.eu/statistics/v1',method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:p};document.getElementById('s1Request').textContent=JSON.stringify(out,null,2);document.getElementById('s1Status').innerHTML='<div class="control-row"><div><b>Processing request built</b><small>Statistical API contract generated for Sentinel-1 GRD VV/VH.</small></div><span class="pill">Ready</span></div><div class="control-row"><div><b>Execution boundary</b><small>Authentication must be handled by ANVORA backend or an explicitly configured OAuth client.</small></div><span class="pill">Protected</span></div>';window.ANVORA_S1_REQUEST=out;return out;}
+function fmtNum(v){return v==null?'—':Number(v).toFixed(5);}
+function renderS1Result(data,simulated){const box=document.getElementById('s1Output');if(!box)return;const intervals=Array.isArray(data?.data)?data.data:[];let rows=[];intervals.forEach((it,i)=>{const out=it.outputs||{},bands=out.backscatter?.bands||{},names=Object.keys(bands),parts=[];names.forEach(n=>{const st=bands[n]?.stats;if(st)parts.push(n+': mean '+fmtNum(st.mean)+' · sd '+fmtNum(st.stDev)+' · n '+fmtNum(st.sampleCount));});rows.push('<div class="control-row"><div><b>Interval '+(i+1)+'</b><small>'+esc(it.interval?.from||'')+' → '+esc(it.interval?.to||'')+' · '+esc(parts.join(' | ')||'Statistics returned')+'</small></div><span class="pill">'+(simulated?'Simulated':'Measured')+'</span></div>');});if(!rows.length)rows.push('<div class="control-row"><div><b>No statistics parsed</b><small>Inspect the raw response JSON or verify the backend contract.</small></div><span class="pill">Review</span></div>');box.innerHTML=rows.join('')+'<pre style="white-space:pre-wrap;background:#f6f8f6;padding:12px;border-radius:10px;border:1px solid #dce5df;overflow:auto;max-height:280px;margin-top:10px">'+esc(JSON.stringify(data,null,2))+'</pre>';window.ANVORA_S1_RESULT={simulated,data};}
+async function checkS1Connector(){
+  const endpoint=document.getElementById('s1Endpoint').value.trim().replace(/\/$/,'');
+  const status=document.getElementById('s1Status');
+  if(!endpoint){
+    status.innerHTML='<div class="control-row"><div><b>Processing endpoint missing</b><small>Enter the Cloudflare Worker endpoint first.</small></div><span class="pill">Action required</span></div>';
+    return;
+  }
+  let health;
+  try{ health=new URL(endpoint).origin+'/health'; }
+  catch{ health=endpoint.replace(/\/api\/sentinel1$/,'')+'/health'; }
+  status.innerHTML='<div class="control-row"><div><b>Checking ANVORA connector</b><small>'+esc(health)+'</small></div><span class="pill">Checking…</span></div>';
+  try{
+    const r=await fetch(health,{method:'GET',headers:{'Accept':'application/json'}});
+    const text=await r.text(); let j=null; try{j=JSON.parse(text)}catch{}
+    if(!r.ok) throw new Error('HTTP '+r.status+(text?' · '+text.slice(0,300):''));
+    status.innerHTML='<div class="control-row"><div><b>Connector reachable</b><small>Cloudflare Worker responded successfully · HTTP '+r.status+' · '+esc(j?.version||'version not reported')+'</small></div><span class="pill">Ready</span></div><div class="control-row"><div><b>Copernicus credentials</b><small>'+esc(j?.copernicusConfigured===true?'Configured on server':'Not confirmed')+'</small></div><span class="pill">'+esc(j?.copernicusConfigured===true?'Protected':'Check settings')+'</span></div><div class="control-row"><div><b>Statistical API</b><small>'+esc(j?.statsEndpoint||'Configured server-side')+'</small></div><span class="pill">Protected</span></div>';
+  }catch(err){
+    status.innerHTML='<div class="control-row"><div><b>Connector check failed</b><small>'+esc(err.message||String(err))+'</small></div><span class="pill">Not connected</span></div><div class="control-row"><div><b>Expected health URL</b><small>'+esc(health)+'</small></div><span class="pill">Check endpoint</span></div>';
+  }
+}
+
+async function runS1Backend(event){
+  if(event){event.preventDefault();event.stopPropagation();}
+  const req=buildS1StatsRequest();
+  const endpoint=document.getElementById('s1Endpoint').value.trim().replace(/\/$/,'');
+  const status=document.getElementById('s1Status');
+  if(!endpoint){
+    status.innerHTML='<div class="control-row"><div><b>Processing endpoint missing</b><small>Enter the Cloudflare Worker endpoint first.</small></div><span class="pill">Action required</span></div>';
+    return;
+  }
+  const payload={
+    provider:'copernicus-sentinel-hub',
+    request:{
+      endpoint:req.endpoint,
+      method:req.method,
+      headers:req.headers,
+      body:req.body
+    },
+    plotId:acqPayload().plotId,
+    acquisitionId:selectedAcqForS1()?.acquisitionId||null
+  };
+  status.innerHTML='<div class="control-row"><div><b>Calling ANVORA processing backend</b><small>'+esc(endpoint)+'</small></div><span class="pill">Processing…</span></div><div class="control-row"><div><b>Protected execution</b><small>OAuth token is created only inside the Cloudflare Worker and is not sent from this page.</small></div><span class="pill">Server-side</span></div>';
+  const started=Date.now();
+  try{
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),40000);
+    let r;
+    try{
+      r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload),signal:controller.signal});
+    }finally{clearTimeout(timer);}
+    const text=await r.text();
+    let data=null; try{data=JSON.parse(text)}catch{}
+    if(!r.ok){
+      const detail=data?.error || data?.data?.error || data?.data?.raw || text || 'No response body';
+      throw new Error('HTTP '+r.status+' · '+detail);
+    }
+    renderS1Result(data,false);
+    const upstreamStatus=data?.upstreamHttpStatus!=null?' · Copernicus HTTP '+data.upstreamHttpStatus:'';
+    const elapsed=data?.elapsedMs!=null?data.elapsedMs:(Date.now()-started);
+    status.innerHTML='<div class="control-row"><div><b>Authenticated processing completed</b><small>Cloudflare Worker returned the Sentinel-1 statistics response · '+elapsed+' ms'+upstreamStatus+'</small></div><span class="pill">Measured</span></div><div class="control-row"><div><b>Observation provenance</b><small>Provider response received through ANVORA server-side connector. This is an observation record; practice inference remains subject to a separate validated algorithm and QA gate.</small></div><span class="pill">Evidence</span></div>';
+  }catch(err){
+    const msg=err?.name==='AbortError'?'Frontend request timed out after 40 seconds':(err?.message||String(err));
+    status.innerHTML='<div class="control-row"><div><b>Authenticated processing failed</b><small>'+esc(msg)+'</small></div><span class="pill">Review</span></div><div class="control-row"><div><b>What to check</b><small>Open the Worker health URL first. If health is Ready, the error shown above should now include the Copernicus HTTP status or response body.</small></div><span class="pill">Diagnostic</span></div>';
+  }
+}
+
+function simulateS1Stats(){
+  const req=buildS1StatsRequest();
+  const from=req.body.aggregation.timeRange.from;
+  const to=req.body.aggregation.timeRange.to;
+  const sim={status:'SIMULATED',note:'Synthetic demonstration only — not an observation of the selected field.',data:[]};
+  sim.data.push({interval:{from:from,to:to},outputs:{backscatter:{bands:{VV:{stats:{min:0.012,max:0.210,mean:0.06124,stDev:0.02131,sampleCount:1248,noDataCount:12}},VH:{stats:{min:0.002,max:0.092,mean:0.01871,stDev:0.00822,sampleCount:1248,noDataCount:12}}}}}});
+  renderS1Result(sim,true);
+  document.getElementById('s1Status').innerHTML='<div class="control-row"><div><b>Sandbox simulation completed</b><small>VV/VH values are synthetic and must not enter an evidence or calculation run.</small></div><span class="pill">Simulation</span></div>';
+}
+
+</script>
+
+
+<style id="anvora-v452-poc-ui">
+/* v4.5.2: Remote Connectors is a full-width working canvas; other pages retain navigation. */
+body.poc-connectors-active{--sidebar:0px}
+body.poc-connectors-active nav{transform:translateX(-100%);box-shadow:none}
+body.poc-connectors-active header{left:0}
+body.poc-connectors-active main.wrap{margin-left:0}
+body.poc-connectors-active footer{margin-left:0}
+body.poc-connectors-active .anvora-sidebar-toggle{left:14px}
+</style>
+<script id="anvora-v452-poc-ui-engine">
+(function(){
+  function setPOC(on){
+    document.body.classList.toggle('poc-connectors-active', !!on);
+    const b=document.querySelector('.anvora-sidebar-toggle');
+    if(b){
+      b.textContent=on?'›':'‹';
+      b.setAttribute('aria-label',on?'Expand ANVORA navigation':'Collapse ANVORA navigation');
+    }
+  }
+  function wire(){
+    document.querySelectorAll('.secondary-nav button[data-page="connectors"]').forEach(b=>{
+      b.addEventListener('click',()=>setTimeout(()=>setPOC(true),0));
+    });
+    document.querySelectorAll('.secondary-nav button:not([data-page="connectors"])').forEach(b=>{
+      b.addEventListener('click',()=>setTimeout(()=>setPOC(false),0));
+    });
+    const active=document.querySelector('.secondary-nav button.active[data-page="connectors"]');
+    if(active) setPOC(true);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(wire,50));
+  else setTimeout(wire,50);
+})();
+</script>
+
+<meta name="anvora-build" content="v4.5.6-authenticated-backend-contract"><!-- v4.5.6: frontend and Worker use the same wrapper contract. --></body></html>"`);
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
 }
 
@@ -267,7 +396,60 @@ function printReport(id){
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-</head>
+<style id="anvora-v30-ui">
+:root{--sidebar:244px;--topbar:82px;--navy:#10231f;--soft:#f7faf8;--accent:#176b52;--accent2:#e5f3ed;--text:#17302a;--muted:#687a74}
+html{scroll-behavior:smooth}
+body{background:#f4f7f5;color:var(--text)}
+header{position:fixed;left:var(--sidebar);right:0;top:0;height:var(--topbar);z-index:30;padding:0;background:#fff;color:var(--text);border-bottom:1px solid var(--line);box-shadow:0 2px 14px rgba(18,52,42,.06)}
+header .wrap{max-width:none;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+header .brand{font-size:21px;letter-spacing:.12em;color:var(--accent)}
+header .sub{font-size:12px;color:var(--muted);opacity:1}
+header .tag{margin-top:0;font-size:12px;color:var(--muted)}
+nav{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar);z-index:40;background:#10231f;border:0;box-shadow:8px 0 24px rgba(10,30,24,.10);overflow-y:auto}
+nav .wrap{max-width:none;margin:0}
+.nav{display:flex;flex-direction:column;gap:2px;padding:18px 12px}
+.persona-nav{padding-top:90px;border-bottom:1px solid rgba(255,255,255,.10);padding-bottom:14px}
+.persona-nav:before{content:'ANVORA';display:block;color:#fff;font-size:20px;font-weight:800;letter-spacing:.13em;padding:0 10px 18px}
+.persona-nav .persona{background:transparent!important;color:#c9d9d3!important;text-align:left;border-radius:9px;padding:9px 10px;font-size:12px}
+.persona-nav .persona:hover{background:rgba(255,255,255,.08)!important;color:#fff!important}
+.secondary-nav{padding-top:14px}
+.secondary-nav:before{content:'WORKSPACE';display:block;color:#7fa99b;font-size:10px;font-weight:800;letter-spacing:.12em;padding:0 10px 7px}
+.secondary-nav button{color:#c9d9d3;background:transparent!important;text-align:left;border-radius:9px;padding:9px 10px;font-size:13px;font-weight:650}
+.secondary-nav button:hover,.secondary-nav button.active{background:#1c4c3e!important;color:#fff!important}
+.secondary-nav button[data-page="control"],.secondary-nav button[data-page="uncertainty"],.secondary-nav button[data-page="feedback"]{display:none}
+main.wrap{max-width:none;margin-left:var(--sidebar);padding:calc(var(--topbar) + 28px) 34px 70px;min-height:calc(100vh - var(--topbar))}
+footer{margin-left:var(--sidebar);background:#fff}
+.page{scroll-margin-top:105px}
+.page.active{animation:anvFade .18s ease-out}
+@keyframes anvFade{from{opacity:.55;transform:translateY(3px)}to{opacity:1;transform:none}}
+main>.card:not(.page),main>section:not(.page){display:none}
+main>.page{max-width:1180px;margin:0 auto}
+#home .card{box-shadow:0 4px 18px rgba(18,52,42,.06)}
+#home .grid.g4>div{display:flex;flex-direction:column;gap:7px}
+#home .grid.g4 button{width:100%;min-height:44px}
+.exec-toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:14px}
+.page>.card,.page>.chart-card{margin-bottom:16px}
+.page h1{font-size:28px;letter-spacing:-.02em}
+.page .eyebrow,.page .kicker{letter-spacing:.1em}
+.metric{letter-spacing:-.02em}
+@media(max-width:850px){
+ :root{--sidebar:0px;--topbar:76px}
+ header{left:0;height:var(--topbar);position:sticky}
+ header .wrap{padding:0 16px}
+ nav{position:sticky;top:0;width:100%;height:auto;max-height:none;overflow:visible;z-index:50}
+ .persona-nav{padding:8px;display:flex;flex-direction:row;overflow:auto;white-space:nowrap}
+ .persona-nav:before{display:none}.persona-nav .persona{flex:0 0 auto}
+ .secondary-nav{display:flex;flex-direction:row;overflow:auto;white-space:nowrap;padding:6px 8px}
+ .secondary-nav:before{display:none}
+ main.wrap{margin-left:0;padding:22px 16px 55px}
+ footer{margin-left:0}
+}
+@media(max-width:560px){header .tag{display:none}header .brand{font-size:18px}.sub{font-size:11px}}
+
+<style id="anvora-v31-premium">
+.premium-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;padding:30px 34px;border-radius:18px;background:linear-gradient(135deg,#10231f 0%,#173b31 58%,#205744 100%);color:#fff;box-shadow:0 14px 35px rgba(16,35,31,.14);margin-bottom:14px}.premium-hero h1{font-size:34px;line-height:1.08;max-width:760px;margin:8px 0 10px;letter-spacing:-.035em}.premium-hero p{max-width:720px;color:#c9d9d3;margin:0;font-size:14px}.premium-hero .eyebrow{color:#8fc5b3}.hero-actions{display:flex;gap:8px;flex-wrap:wrap}.premium-hero button:not(.primary){background:rgba(255,255,255,.09);color:#fff;border-color:rgba(255,255,255,.18)}.dashboard-strip{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid #e0e8e4;border-radius:12px;padding:12px 15px;margin-bottom:14px;box-shadow:0 3px 12px rgba(18,52,42,.04)}.dash-context{display:flex;align-items:center;gap:10px;font-size:13px}.context-label,.kpi-label{font-size:10px;letter-spacing:.12em;font-weight:800;color:#789087}.status-dot{width:7px;height:7px;border-radius:50%;background:#3b8f69;display:inline-block}.dash-actions{display:flex;gap:6px}.dash-actions button{font-size:12px;padding:7px 10px}.premium-kpis{margin-bottom:16px}.kpi-card{background:#fff;border:1px solid #e1e9e5;border-radius:14px;padding:17px 18px;min-height:110px;box-shadow:0 3px 14px rgba(18,52,42,.045)}.kpi-card .metric{font-size:25px;margin:8px 0 4px}.premium-main-grid{align-items:stretch}.dashboard-card{height:100%;box-shadow:0 3px 16px rgba(18,52,42,.045);border-color:#e1e9e5}.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}.section-head h2{margin:3px 0 0;font-size:19px}.mini-status{font-size:9px;letter-spacing:.1em;font-weight:800;border:1px solid #b8d8ca;background:#eef8f3;color:#176b52;border-radius:999px;padding:6px 8px;white-space:nowrap}.workflow-track{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:20px}.workflow-track button{border:1px solid #dce7e2;background:#f8fbfa;border-radius:11px;text-align:left;padding:12px 10px;min-height:105px;display:flex;flex-direction:column;gap:5px;cursor:pointer}.workflow-track button:hover{border-color:#8ebca9;background:#f0f8f4;transform:translateY(-1px)}.workflow-track span{font-size:9px;color:#739187;font-weight:800}.workflow-track b{font-size:13px}.workflow-track small{font-size:10px;color:#70817b;line-height:1.3}.signal-list{margin-top:8px}.signal-list>div{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:13px 0;border-bottom:1px solid #edf1ef}.signal-list>div:last-child{border-bottom:0}.signal-icon{width:30px;height:30px;border-radius:9px;background:#eaf5f0;color:#176b52;font-size:9px;font-weight:800;display:grid;place-items:center}.signal-list b{font-size:13px}.signal-list p{margin:3px 0 0;font-size:11px;color:#71817b;line-height:1.35}.signal-list button{font-size:11px;padding:6px 9px}.persona-launcher{margin-top:16px}.role-card{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:6px;padding:16px;border:1px solid #dfe8e3;background:#fff;border-radius:13px;cursor:pointer;min-height:125px}.role-card:hover{border-color:#8ebca9;background:#f7fbf9;transform:translateY(-1px)}.role-card b{font-size:14px}.role-card span{font-size:11px;color:#70817b;line-height:1.4}.role-card strong{margin-top:auto;font-size:11px;color:#176b52}.notice{border-radius:10px}@media(max-width:1050px){.workflow-track{grid-template-columns:repeat(3,1fr)}.premium-hero{align-items:flex-start;flex-direction:column}.hero-actions{width:100%}}@media(max-width:650px){.dashboard-strip{align-items:flex-start;flex-direction:column;gap:10px}.workflow-track{grid-template-columns:repeat(2,1fr)}.premium-hero{padding:23px}.premium-hero h1{font-size:28px}.dash-actions{flex-wrap:wrap}.signal-list>div{grid-template-columns:30px 1fr}.signal-list button{grid-column:2;justify-self:start}}
+</style>
+</style></head>
 <body>
 <header><div class="wrap">
   <div class="brand">ANVORA</div>
@@ -275,34 +457,76 @@ function printReport(id){
   <div class="tag">FIELD-TO-SEED CLIMATE ACCOUNTING &amp; MRV · Measure. Trace. Reconcile. Report.</div>
 </div></header>
 
-<nav><a href="#auditor">Auditor / Verifier</a><a href="#leadership">Leadership MIS</a><a href="#farmer">Farmer Quick Start</a><div class="wrap nav">
-<button data-page="home" class="active">Overview</button><button data-page="workspace">Data Workspace</button>
-<button data-page="synthetic">Synthetic Data</button><button data-page="validation">Validation</button>
-<button data-page="control">Scientific Control</button><button data-page="calculation">Calculation</button><button data-page="evidence">Evidence</button><button data-page="uncertainty">Confidence &amp; Uncertainty</button><button data-page="mrv">MRV Readiness</button><button data-page="intelligence">Intelligence</button><button data-page="passport">Climate Passport</button><button data-page="feedback">Feedback</button>
+<nav><div class="wrap nav persona-nav">
+<button class="persona" onclick="openPersona('auditor')">Auditor / Verifier</button>
+<button class="persona" onclick="openPersona('leadership')">Leadership MIS</button>
+<button class="persona" onclick="openPersona('workspace')">Corporate / Enterprise</button>
+<button class="persona" onclick="openPersona('farmer')">Farmer Quick Start</button>
+</div><div class="wrap nav secondary-nav">
+<button data-page="home" class="active">Overview</button><button data-page="workspace">Data Workspace</button><button data-page="methodology">Methodology &amp; Disclosure</button>
+<button data-page="validation">Validation</button><button data-page="remoteEvidence">Remote Evidence</button><button data-page="evidence">Evidence</button><button data-page="mrv">MRV Readiness</button><button data-page="passport">Climate Passport</button>
+<button data-page="intelligence">Leadership Intelligence</button>
 </div></nav>
 
 <main class="wrap">
 <section id="home" class="page active">
-<div class="grid g3">
-<div class="card"><div class="kicker">Platform status</div><div class="metric">Public Beta</div><div class="muted">ANVORA v2.1 · Rice implementation</div></div>
-<div class="card"><div class="kicker">Data status</div><div id="homeData" class="metric">No dataset</div><div id="homeDataSub" class="muted">Create synthetic data or import CSV</div></div>
-<div class="card"><div class="kicker">MRV status</div><div id="homeMRV" class="metric">Not ready</div><div class="muted">Readiness is evidence- and methodology-dependent</div></div>
-</div>
-<div class="card" style="margin-top:16px">
-<div class="kicker">Field-to-seed chain</div><h1>From parent seed to finished seed lot</h1>
-<p class="muted">ANVORA connects production activity data, traceability, climate calculations, evidence and mass balance in one auditable workflow.</p>
-<div class="grid g3" style="margin-top:16px">
-<div class="step"><div class="num">1</div><div><b>Create</b><br><span class="muted">Project and dataset</span></div></div>
-<div class="step"><div class="num">2</div><div><b>Trace</b><br><span class="muted">Lot → grower → plot → activity</span></div></div>
-<div class="step"><div class="num">3</div><div><b>Validate</b><br><span class="muted">Structure, logic, mass balance</span></div></div>
-<div class="step"><div class="num">4</div><div><b>Calculate</b><br><span class="muted">Transparent emission modules</span></div></div>
-<div class="step"><div class="num">5</div><div><b>Review</b><br><span class="muted">Factors, evidence, uncertainty</span></div></div>
-<div class="step"><div class="num">6</div><div><b>Report</b><br><span class="muted">Climate Passport</span></div></div>
-</div>
-<div class="actions"><button class="primary" onclick="showPage('synthetic')">Generate test dataset</button><button class="btn secondary" onclick="showPage('workspace')">Open data workspace</button></div>
-</div>
-<div class="notice"><b>Public Beta boundary:</b> ANVORA calculates and traces prototype climate-accounting results. It does not certify factors, carbon credits, offsets, regulatory compliance, or independent verification.</div>
-<div class="notice"><b>Important:</b> This public beta is a calculation and MRV framework prototype. Passing validation does not certify carbon factors, methodology applicability, evidence authenticity, offsets, credits, or third-party verification.</div>
+  <div class="premium-hero">
+    <div>
+      <div class="eyebrow">ANVORA · CLIMATE INTELLIGENCE WORKSPACE</div>
+      <h1>Seed climate intelligence, from field to disclosure.</h1>
+      <p>Bring production data, remote evidence, methodology controls and climate accounting into one traceable workflow.</p>
+    </div>
+    <div class="hero-actions">
+      <button class="primary" onclick="openPersona('workspace')">Open enterprise workspace</button>
+      <button onclick="openPersona('auditor')">Open assurance workspace</button>
+    </div>
+  </div>
+
+  <div class="dashboard-strip">
+    <div class="dash-context"><span class="context-label">ACTIVE PROJECT</span><strong id="dashProject">Rice Seed Production · 2026</strong><span class="status-dot"></span><span class="muted">Prototype</span></div>
+    <div class="dash-actions"><button onclick="showPage('methodology')">Methodology</button><button onclick="showPage('workspace')">Data</button><button onclick="showPage('passport')">Passport</button></div>
+  </div>
+
+  <div class="grid g4 premium-kpis">
+    <div class="kpi-card"><div class="kpi-label">DATASET</div><div id="homeData" class="metric">No dataset</div><div id="homeDataSub" class="muted">Import a project dataset</div></div>
+    <div class="kpi-card"><div class="kpi-label">AREA COVERED</div><div id="dashArea" class="metric">—</div><div class="muted">hectares</div></div>
+    <div class="kpi-card"><div class="kpi-label">FOOTPRINT</div><div id="dashFootprint" class="metric">—</div><div class="muted">tCO₂e · calculated</div></div>
+    <div class="kpi-card"><div class="kpi-label">MRV READINESS</div><div id="homeMRV" class="metric">Not ready</div><div class="muted">Evidence and methodology dependent</div></div>
+  </div>
+
+  <div class="grid g2 premium-main-grid">
+    <div class="card dashboard-card">
+      <div class="section-head"><div><div class="kicker">CONTROLLED WORKFLOW</div><h2>Field → evidence → calculation → disclosure</h2></div><span class="mini-status">LIVE PROTOTYPE</span></div>
+      <div class="workflow-track">
+        <button onclick="showPage('workspace')"><span>01</span><b>Data</b><small>Import &amp; structure</small></button>
+        <button onclick="showPage('remoteEvidence')"><span>02</span><b>Evidence</b><small>Remote corroboration</small></button>
+        <button onclick="showPage('validation')"><span>03</span><b>Validate</b><small>Quality &amp; mass balance</small></button>
+        <button onclick="showPage('calculation')"><span>04</span><b>Calculate</b><small>Controlled factors</small></button>
+        <button onclick="showPage('mrv')"><span>05</span><b>Assure</b><small>MRV readiness</small></button>
+        <button onclick="showPage('passport')"><span>06</span><b>Report</b><small>Climate Passport</small></button>
+      </div>
+    </div>
+    <div class="card dashboard-card">
+      <div class="section-head"><div><div class="kicker">EXECUTIVE SIGNALS</div><h2>What needs attention?</h2></div></div>
+      <div class="signal-list">
+        <div><span class="signal-icon">01</span><div><b>Evidence coverage</b><p>Review missing or incomplete plot evidence before formal reliance.</p></div><button onclick="showPage('evidence')">Review</button></div>
+        <div><span class="signal-icon">02</span><div><b>Methodology profile</b><p>Confirm jurisdiction, framework, factors and GWP basis.</p></div><button onclick="showPage('methodology')">Open</button></div>
+        <div><span class="signal-icon">03</span><div><b>Remote corroboration</b><p>Check plot identity and claimed practice consistency.</p></div><button onclick="showPage('remoteEvidence')">Inspect</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card dashboard-card persona-launcher">
+    <div class="section-head"><div><div class="kicker">ROLE-BASED WORKSPACES</div><h2>Start with the view you need</h2></div></div>
+    <div class="grid g4">
+      <button class="role-card" onclick="openPersona('auditor')"><b>Auditor / Verifier</b><span>Evidence, exceptions, MRV and passport</span><strong>Open →</strong></button>
+      <button class="role-card" onclick="openPersona('leadership')"><b>Leadership MIS</b><span>Enterprise footprint, hotspots and trends</span><strong>Open →</strong></button>
+      <button class="role-card" onclick="openPersona('workspace')"><b>Corporate / Enterprise</b><span>Projects, datasets and calculation workflow</span><strong>Open →</strong></button>
+      <button class="role-card" onclick="openPersona('farmer')"><b>Farmer Quick Start</b><span>Simple farm-level footprint estimation</span><strong>Open →</strong></button>
+    </div>
+  </div>
+
+  <div class="notice"><b>Prototype boundary:</b> ANVORA calculates and traces prototype climate-accounting results. Passing validation does not certify factors, methodology applicability, evidence authenticity, carbon credits, offsets or independent verification.</div>
 </section>
 
 
@@ -451,6 +675,7 @@ function printReport(id){
 </section>
 
 <section id="synthetic" class="page">
+<div class="notice warning"><b>Developer / Test Mode</b> — Synthetic Data is retained for internal testing only and is not part of the normal ANVORA business workflow.</div>
 <div class="card">
 <div class="kicker">Synthetic data mode</div><h1>Generate a realistic test dataset</h1>
 <p class="muted">Use this mode to test the complete ANVORA workflow without confidential farm or employee information.</p>
@@ -470,6 +695,30 @@ function printReport(id){
 </div>
 </section>
 
+<section id="methodology" class="page">
+<div class="card">
+<div class="kicker">METHODOLOGY &amp; DISCLOSURE PROFILE</div>
+<h1>Project Accounting &amp; Disclosure Profile</h1>
+<p class="muted">Select the reporting framework and controlled calculation basis for this project. Source field evidence remains independent of the reporting framework and can support multiple reporting profiles.</p>
+<div class="grid">
+<div><label>Reporting jurisdiction<select id="mpJurisdiction"><option>India</option><option>European Union</option><option>United Kingdom</option><option>United States</option><option>Other</option></select></label></div>
+<div><label>Primary reporting framework<select id="mpFramework"><option>GHG Protocol Corporate Standard</option><option>GHG Protocol Scope 3</option><option>GHG Protocol Land Sector &amp; Removals</option><option>ISO 14064-1</option><option>IFRS S2</option><option>Other / Custom</option></select></label></div>
+<div><label>Agricultural quantification methodology<select id="mpMethod"><option>ANVORA Rice Methodology v0.3</option><option>Customer-approved methodology</option><option>Program / scheme methodology</option><option>Custom methodology</option></select></label></div>
+<div><label>Emission-factor source<select id="mpFactors"><option>ANVORA controlled factor registry</option><option>IPCC</option><option>National factor database</option><option>Customer-approved factors</option><option>Program-specific factors</option></select></label></div>
+<div><label>GWP basis<select id="mpGWP"><option>AR6</option><option>AR5</option><option>Other specified basis</option></select></label></div>
+<div><label>Assurance level<select id="mpAssurance"><option>Internal review</option><option>Limited assurance</option><option>Reasonable assurance</option><option>Third-party verification</option></select></label></div>
+<div><label>Reporting period<input id="mpPeriod" value="FY2026-27"></label></div>
+</div>
+<div class="actions" style="margin-top:16px"><button class="primary" onclick="saveMethodologyProfile()">Save Methodology Profile</button><button onclick="loadMethodologyProfile()">Reload saved profile</button></div>
+<div id="methodologyStatus" class="notice">No project methodology profile saved in this browser.</div>
+</div>
+<div class="card">
+<div class="kicker">CONTROL PRINCIPLE</div><h2>Evidence and methodology are separate layers</h2>
+<p class="muted">A satellite observation, GPS boundary, invoice or weighbridge record is retained as source evidence. The selected methodology determines how that evidence and the activity data are interpreted and quantified. Changing a methodology should create a new calculation run rather than overwrite an earlier result.</p>
+<div id="methodologySummary" class="notice">Save a profile to create the project control record.</div>
+</div>
+</section>
+
 <section id="validation" class="page">
 <div class="grid g4">
 <div class="card"><div class="kicker">Plots</div><div id="vPlots" class="metric">0</div></div>
@@ -477,7 +726,14 @@ function printReport(id){
 <div class="card"><div class="kicker">Checks passed</div><div id="vPass" class="metric">0</div></div>
 <div class="card"><div class="kicker">Open issues</div><div id="vIssues" class="metric">0</div></div>
 </div>
-<div class="card" style="margin-top:16px"><div class="kicker">Quality gate</div><h1 id="gateTitle">No dataset loaded</h1><div class="bar"><span id="gateBar" style="width:0%"></span></div><div id="validationResults" style="margin-top:15px"></div></div>
+<div class="card" style="margin-top:16px"><div class="kicker">Evidence fusion &amp; validation gate</div><h1 id="gateTitle">No dataset loaded</h1><p class="muted">ANVORA now separates structural validation from evidence corroboration. A dataset may be structurally complete while still requiring evidence review.</p><div class="bar"><span id="gateBar" style="width:0%"></span></div><div id="validationResults" style="margin-top:15px"></div></div>
+<div class="grid g4" style="margin-top:16px">
+<div class="card"><div class="kicker">Data quality</div><div id="fusionData" class="metric">—</div><p class="muted">Completeness &amp; linkage</p></div>
+<div class="card"><div class="kicker">Evidence coverage</div><div id="fusionEvidence" class="metric">—</div><p class="muted">Plot-level traceability</p></div>
+<div class="card"><div class="kicker">Remote corroboration</div><div id="fusionRemote" class="metric">—</div><p class="muted">Prototype observation layer</p></div>
+<div class="card"><div class="kicker">Calculation gate</div><div id="fusionGate" class="metric" style="font-size:18px">—</div><p class="muted">Decision status</p></div>
+</div>
+<div class="card" style="margin-top:16px"><div class="kicker">Evidence fusion matrix</div><h2>Claim → Evidence → Assessment</h2><div id="fusionMatrix" class="muted">Run validation to build the evidence fusion matrix.</div></div>
 </section>
 
 
@@ -539,8 +795,83 @@ function printReport(id){
 <div class="actions"><button class="primary" onclick="calculate()">Run calculation</button></div>
 <div id="calcOutput" style="margin-top:16px"></div>
 </div>
+<div class="card" style="margin-top:16px">
+  <div class="kicker">CALCULATION GOVERNANCE</div>
+  <h2>Methodology Lock &amp; Run History</h2>
+  <p class="muted">Each run captures the methodology, factor registry, GWP set, engine version and dataset context. Changing a control does not rewrite a previous run; it creates a new calculation version when you run again.</p>
+  <div id="calcLockStatus" class="notice warning">No calculation run locked yet.</div>
+  <div id="calcHistory" style="margin-top:14px"><div class="muted">Run history will appear here.</div></div>
+</div>
 </section>
 
+
+<section id="remoteEvidence" class="page">
+<style>
+.re-shell{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px}.re-panel{background:var(--card,#fff);border:1px solid var(--line,#dfe7e2);border-radius:18px;box-shadow:0 8px 24px rgba(16,45,34,.05)}
+.re-side{padding:16px;position:sticky;top:86px;height:max-content}.re-side h3{margin:4px 0 12px}.re-plot{width:100%;text-align:left;border:1px solid transparent;background:transparent;border-radius:12px;padding:11px 12px;margin:4px 0;cursor:pointer}.re-plot:hover,.re-plot.active{background:#eef7f2;border-color:#cce3d7}.re-plot b{display:block}.re-plot small{display:block;color:#718078;margin-top:3px}.re-main{min-width:0}.re-head{padding:22px}.re-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}.re-kpi .re-panel{padding:15px}.re-num{font-size:24px;font-weight:800;margin-top:5px}.re-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#74817a}.re-mapgrid{display:grid;grid-template-columns:1.25fr .75fr;gap:16px;margin-top:16px}.re-map{height:330px;position:relative;overflow:hidden;background:linear-gradient(135deg,#dce9df,#f4f1df 48%,#d8e6d7);border-radius:16px}.re-map:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(40,80,60,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(40,80,60,.12) 1px,transparent 1px);background-size:42px 42px}.re-field{position:absolute;left:24%;top:18%;width:47%;height:58%;border:3px solid #236b4a;border-radius:38% 52% 45% 35%;background:rgba(54,125,83,.16);transform:rotate(-8deg)}.re-field:after{content:"PLOT BOUNDARY · SIMULATED";position:absolute;left:15%;top:45%;font-size:10px;font-weight:700;color:#236b4a;letter-spacing:.05em}.re-pin{position:absolute;left:46%;top:38%;font-size:24px}.re-mapnote{position:absolute;left:14px;bottom:14px;background:rgba(255,255,255,.9);padding:8px 10px;border-radius:10px;font-size:11px}.re-sidecard{padding:18px}.re-section{margin-top:16px;padding:18px}.re-compare{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.re-compare>div{padding:14px;border-radius:13px;background:#f6f8f6;border:1px solid #e5ebe7}.re-timeline{display:flex;gap:8px;align-items:flex-end;height:105px;margin-top:12px;padding:0 4px}.re-event{flex:1;min-width:28px;text-align:center}.re-bar{height:48px;border-radius:7px 7px 2px 2px;background:#8eb7a2;margin-bottom:5px}.re-event.dry .re-bar{height:22px;background:#d2b36c}.re-event small{font-size:9px;color:#718078}.re-ledger{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.7;background:#102d22;color:#dcebe3;border-radius:14px;padding:15px;overflow:auto}.re-actions{display:flex;gap:8px;flex-wrap:wrap}.re-status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:700}.re-status.warn{background:#fff3d9;color:#7a5b14}.re-status.ok{background:#e7f5ed;color:#216342}.re-source{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #edf1ee}.re-source:last-child{border-bottom:0}.re-mini{font-size:12px;color:#718078}.re-confidence{font-size:28px;font-weight:800}.re-pillrow{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}@media(max-width:900px){.re-shell,.re-mapgrid{grid-template-columns:1fr}.re-side{position:static}.re-kpi{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.re-kpi,.re-compare{grid-template-columns:1fr}}
+</style>
+<div class="re-shell">
+  <aside class="re-panel re-side">
+    <div class="kicker">REMOTE EVIDENCE</div><h3>Field register</h3>
+    <div id="rePlotList"><div class="re-mini">Load a dataset to inspect plots.</div></div>
+    <div class="notice" style="margin-top:14px;font-size:11px"><b>Evidence principle</b><br>Remote sensing corroborates a claim; it does not automatically prove a farmer action.</div>
+  </aside>
+  <div class="re-main">
+    <div class="re-panel re-head">
+      <div class="kicker">REMOTE EVIDENCE · v3.4 CALCULATION LOCK</div>
+      <h1 style="margin-bottom:6px">Field evidence, from claim to corroboration.</h1>
+      <p class="muted">A dedicated evidence workspace for plot identity, field geometry, water-regime observations and audit traceability.</p>
+      <div class="re-actions" style="margin-top:14px"><button class="primary" onclick="refreshRemoteEvidence()">Scan current dataset</button><button onclick="exportRemoteEvidence()">Export evidence ledger</button><span class="re-status warn">SIMULATED OBSERVATION LAYER</span></div>
+    </div>
+    <div class="re-kpi">
+      <div class="re-panel"><div class="re-label">Plots loaded</div><div id="rePlots" class="re-num">0</div></div>
+      <div class="re-panel"><div class="re-label">Spatial coverage</div><div id="reGPS" class="re-num">0%</div></div>
+      <div class="re-panel"><div class="re-label">Evidence records</div><div id="reObs" class="re-num">0</div></div>
+      <div class="re-panel"><div class="re-label">Evidence state</div><div id="reStatus" class="re-num" style="font-size:17px">No dataset</div></div>
+    </div>
+    <div class="re-mapgrid">
+      <div class="re-panel re-section">
+        <div class="kicker">01 · FIELD IDENTITY</div><h2 id="reSelectedTitle">Select a plot</h2>
+        <div class="re-map"><div class="re-field"></div><div class="re-pin">⌖</div><div class="re-mapnote">Map canvas · simulated geometry · live GIS connector planned</div></div>
+      </div>
+      <div class="re-panel re-sidecard">
+        <div class="kicker">IDENTITY CHECK</div>
+        <div id="reIdentity"><div class="re-mini">Select a plot from the field register.</div></div>
+        <hr style="border:0;border-top:1px solid #edf1ee;margin:16px 0">
+        <div class="kicker">DATA SOURCES</div>
+        <div class="re-source"><span>GPS / polygon</span><span class="re-status warn">Pilot</span></div>
+        <div class="re-source"><span>Sentinel-1 SAR</span><span class="re-status warn">Planned</span></div>
+        <div class="re-source"><span>Sentinel-2 optical</span><span class="re-status warn">Planned</span></div>
+      </div>
+    </div>
+    <div class="re-panel re-section">
+      <div class="kicker">02 · CLAIM VS OBSERVATION</div><h2>Water regime &amp; AWD corroboration</h2>
+      <p class="muted">The production engine will compare farmer/field-operator claims with temporal EO signals. The timeline below is a <b>workflow simulation</b>, not live satellite evidence.</p>
+      <div class="re-compare" id="reCompare"><div>Claimed water regime<br><b>—</b></div><div>Claimed AWD / drainage events<br><b>—</b></div><div>Observed probable dry-downs<br><b>Not assessed</b></div></div>
+      <div class="re-timeline" aria-label="Simulated observation timeline"><div class="re-event"><div class="re-bar"></div><small>W1</small></div><div class="re-event"><div class="re-bar"></div><small>W2</small></div><div class="re-event dry"><div class="re-bar"></div><small>W3</small></div><div class="re-event"><div class="re-bar"></div><small>W4</small></div><div class="re-event dry"><div class="re-bar"></div><small>W5</small></div><div class="re-event"><div class="re-bar"></div><small>W6</small></div><div class="re-event dry"><div class="re-bar"></div><small>W7</small></div><div class="re-event"><div class="re-bar"></div><small>W8</small></div></div>
+      <div id="rePracticeTable" style="margin-top:16px"></div>
+    </div>
+    <div class="re-panel re-section">
+      <div class="kicker">03 · EVIDENCE CONFIDENCE</div><h2>Corroboration decision</h2>
+      <div class="re-compare">
+        <div><div class="re-label">Spatial confidence</div><div id="reSpatialConf" class="re-confidence">—</div><div class="re-mini">GPS / boundary agreement</div></div>
+        <div><div class="re-label">Practice consistency</div><div id="rePracticeConf" class="re-confidence">—</div><div class="re-mini">Claim vs observed signal</div></div>
+        <div><div class="re-label">Audit status</div><div id="reAuditStatus" class="re-confidence" style="font-size:19px">Not assessed</div><div class="re-mini">Requires source-level evidence</div></div>
+      </div>
+      <div id="reDetail" class="re-ledger" style="margin-top:14px">Select a plot to generate its prototype evidence record.</div>
+    </div>
+    <div class="re-panel re-section">
+      <div class="kicker">04 · EVIDENCE LEDGER</div><h2>Immutable-ready record design</h2>
+      <p class="muted">Every corroboration event should retain enough provenance for an independent reviewer to reproduce the observation.</p>
+      <div class="grid g3">
+        <div><b>Source asset</b><p class="re-mini">Acquisition ID, provider, scene/tile reference</p></div>
+        <div><b>Processing lineage</b><p class="re-mini">Algorithm, version, thresholds, processing timestamp</p></div>
+        <div><b>Spatial &amp; temporal match</b><p class="re-mini">Geometry, observation window, overlap and confidence</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
 
 <section id="evidence" class="page">
 <div class="card">
@@ -582,41 +913,53 @@ function printReport(id){
 
 <section id="mrv" class="page">
 <div class="card">
-<div class="kicker">MRV readiness</div><h1>Measurement, Reporting &amp; Verification Readiness</h1>
-<p class="muted">ANVORA separates calculation readiness from verification readiness.</p>
-<div class="grid g4">
-<div class="card"><div class="kicker">Data</div><div id="mrvData" class="metric">—</div></div>
-<div class="card"><div class="kicker">Evidence</div><div id="mrvEvidence" class="metric">—</div></div>
-<div class="card"><div class="kicker">Method</div><div id="mrvMethod" class="metric">—</div></div>
-<div class="card"><div class="kicker">Overall</div><div id="mrvOverall" class="metric">Not ready</div></div>
+<div class="kicker">Assurance workspace · v3.5</div>
+<div style="display:flex;justify-content:space-between;gap:20px;align-items:flex-start;flex-wrap:wrap">
+<div><h1>MRV Readiness &amp; Assurance</h1><p class="muted">A structured control room showing what ANVORA can support, what is corroborated, and what still requires review.</p></div>
+<div class="card" style="min-width:230px;text-align:center"><div class="kicker">READINESS INDEX</div><div id="mrvScore" class="metric" style="font-size:34px">—</div><div id="mrvOverall" class="pill warn" style="display:inline-block;margin-top:6px">Not ready</div></div>
 </div>
-<div id="mrvChecklist" style="margin-top:16px"></div>
-<div class="notice warning"><b>Important:</b> "Ready" here means ready for internal review of the prototype workflow. It does not mean externally verified, certified, or eligible for a carbon-crediting program.</div>
+<div class="grid g4" style="margin-top:18px">
+<div class="card"><div class="kicker">Data integrity</div><div id="mrvData" class="metric">—</div><small class="muted">Completeness &amp; structural checks</small></div>
+<div class="card"><div class="kicker">Evidence coverage</div><div id="mrvEvidence" class="metric">—</div><small class="muted">Traceability of plot claims</small></div>
+<div class="card"><div class="kicker">Methodology</div><div id="mrvMethod" class="metric">—</div><small class="muted">Controlled quantification basis</small></div>
+<div class="card"><div class="kicker">Calculation lineage</div><div id="mrvCalc" class="metric">—</div><small class="muted">Run ID &amp; fingerprint</small></div>
 </div>
+</div>
+
+<div class="grid g2" style="margin-top:16px">
+<div class="card"><div class="kicker">Readiness domains</div><h2>Control matrix</h2><div id="mrvChecklist" style="margin-top:12px"></div></div>
+<div class="card"><div class="kicker">Exceptions</div><h2>Items requiring attention</h2><div id="mrvExceptions" style="margin-top:12px"></div></div>
+</div>
+
+<div class="card" style="margin-top:16px"><div class="kicker">Assurance handoff</div><h2>What an auditor receives</h2><div class="grid g3" style="margin-top:12px">
+<div class="card"><b>Evidence bundle</b><p class="muted">Plot claims, evidence IDs, remote observations and provenance requirements.</p><span id="mrvBundle" class="pill warn">Pending</span></div>
+<div class="card"><b>Calculation lineage</b><p class="muted">Methodology, factor registry, GWP basis, run ID and calculation fingerprint.</p><span id="mrvLineage" class="pill warn">Pending</span></div>
+<div class="card"><b>Review statement</b><p class="muted">A transparent readiness statement without representing the prototype as certified assurance.</p><span id="mrvStatement" class="pill">Prototype</span></div>
+</div>
+</div>
+<div class="notice warning" style="margin-top:16px"><b>Important:</b> ANVORA MRV readiness is a workflow-control signal. It is not external verification, certification, carbon-credit issuance, or an assurance opinion.</div>
 </section>
 
 <section id="intelligence" class="page">
-<div class="card">
-<div class="kicker">Decision intelligence</div><h1>Hotspots &amp; Scenario Framework</h1>
-<p class="muted">This is the bridge from measurement to action. Recommendations remain descriptive in this beta; they are not optimization claims.</p>
-<div class="grid g3">
-<div class="card"><div class="kicker">CH₄ share</div><div id="hotCH4" class="metric">—</div></div>
-<div class="card"><div class="kicker">N₂O share</div><div id="hotN2O" class="metric">—</div></div>
-<div class="card"><div class="kicker">Energy + post-harvest</div><div id="hotOther" class="metric">—</div></div>
+<style>
+.li-hero{background:linear-gradient(135deg,#0b2a22,#164f40);color:#fff;border-radius:22px;padding:26px 28px;margin-bottom:16px}
+.li-hero .kicker{color:#9fe0c7}.li-hero h1{margin:5px 0 8px;color:#fff;font-size:30px}.li-hero p{margin:0;color:#cfe9df;max-width:820px}
+.li-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}.li-kpi{background:#fff;border:1px solid #dfe9e4;border-radius:16px;padding:16px}.li-kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:#71847d;font-weight:700}.li-kpi .value{font-size:25px;font-weight:800;color:#17362d;margin-top:7px}.li-kpi .sub{font-size:12px;color:#788982;margin-top:4px}
+.li-layout{display:grid;grid-template-columns:1.25fr .75fr;gap:16px}.li-panel{background:#fff;border:1px solid #dfe9e4;border-radius:18px;padding:18px}.li-panel h2{margin:0 0 6px;color:#17362d;font-size:19px}.li-panel p{margin:0 0 14px}
+.li-bar{display:grid;grid-template-columns:170px 1fr 86px;gap:10px;align-items:center;margin:11px 0;font-size:13px}.li-track{height:10px;background:#e8efec;border-radius:99px;overflow:hidden}.li-fill{height:100%;background:#2f8067;border-radius:99px}.li-signal{padding:12px;border:1px solid #e1ebe7;border-radius:13px;margin-top:10px}.li-signal b{display:block;color:#17362d}.li-tag{display:inline-block;padding:4px 8px;border-radius:99px;background:#edf5f1;color:#276650;font-size:11px;font-weight:800;margin-top:7px}.li-tag.review{background:#fff4dd;color:#8b6114}.li-tag.info{background:#eef3f8;color:#45617a}
+.li-table{width:100%;border-collapse:collapse;font-size:12px}.li-table th,.li-table td{padding:9px 7px;border-bottom:1px solid #edf1ef;text-align:left}.li-table th{color:#65766f;font-size:10px;text-transform:uppercase;letter-spacing:.06em}.li-note{margin-top:14px;font-size:11px;color:#74837d;background:#f7faf8;padding:11px;border-radius:10px}
+@media(max-width:900px){.li-grid{grid-template-columns:repeat(2,1fr)}.li-layout{grid-template-columns:1fr}.li-bar{grid-template-columns:120px 1fr 70px}}@media(max-width:600px){.li-grid{grid-template-columns:1fr}}
+</style>
+<div class="li-hero"><div class="kicker">LEADERSHIP INTELLIGENCE · v3.7</div><h1>From footprint to management attention.</h1><p>See where emissions are concentrated, how evidence coverage compares across the portfolio, and which records require follow-up. ANVORA separates measured results from modeled scenarios and does not infer causality from associations.</p></div>
+<div class="li-grid" id="liExecutiveKpis"></div>
+<div class="li-layout">
+  <div class="li-panel"><h2>Portfolio concentration</h2><p class="muted">Top locations or varieties by the selected footprint metric.</p><div class="grid g4" style="margin-bottom:12px"><div><label>Group by<select id="liGroup"><option value="state">State</option><option value="district">District</option><option value="hybrid">Hybrid / variety</option><option value="water">Water regime</option></select></label></div><div><label>Metric<select id="liMetric2"><option value="total">Total tCO₂e</option><option value="intensity">kg CO₂e/kg seed</option><option value="area">kg CO₂e/ha</option></select></label></div></div><div id="liConcentration"></div></div>
+  <div class="li-panel"><h2>Management signals</h2><p class="muted">Signals generated from the loaded evidence and calculation state.</p><div id="liSignals"></div></div>
 </div>
-<div class="card" style="margin-top:16px">
-<h2>Scenario controls</h2>
-<div class="grid g4">
-<div><label>CH₄ multiplier</label><input id="scCH4" type="number" step=".05" value="0.8"></div>
-<div><label>N₂O multiplier</label><input id="scN2O" type="number" step=".05" value="0.9"></div>
-<div><label>Energy multiplier</label><input id="scEnergy" type="number" step=".05" value="0.9"></div>
-<div><label>Post-harvest multiplier</label><input id="scPost" type="number" step=".05" value="0.9"></div>
-</div>
-<div class="actions"><button class="primary" onclick="runScenario()">Run illustrative scenario</button></div>
-<div id="scenarioOutput" style="margin-top:14px"></div>
-</div>
-<div class="notice">Scenario results are mathematical sensitivity tests against the prototype baseline. They are not forecasts of actual field performance.</div>
-</div>
+<div class="li-panel" style="margin-top:16px"><h2>Evidence &amp; calculation coverage</h2><p class="muted">Coverage is a control indicator, not an assurance conclusion.</p><div id="liCoverage"></div></div>
+<div class="li-panel" style="margin-top:16px"><h2>Priority review register</h2><p class="muted">Records requiring evidence, spatial corroboration or data-quality follow-up.</p><div id="liReviewTable"></div><div class="li-note">Leadership intelligence is decision support. A high footprint is not by itself evidence of poor practice, and a low footprint is not evidence of verified climate performance.</div></div>
+<div class="actions" style="margin-top:14px"><button onclick="exportLeadershipExcel()">Download Leadership Excel</button><button onclick="exportLeadershipPDF()">Download Leadership PDF</button><button onclick="printReport('leadership')">Print / Save PDF</button></div>
+<div class="notice" style="margin-top:14px">No trend is displayed unless the loaded dataset contains comparable time periods. ANVORA does not fabricate a trend from a single-season dataset.</div>
 </section>
 
 <section id="passport" class="page">
@@ -638,20 +981,270 @@ function printReport(id){
 <div id="feedbackLog" style="margin-top:16px"></div>
 </div>
 </section>
+
+<section id="architecture" class="page">
+  <div class="premium-hero">
+    <div>
+      <div class="eyebrow">ANVORA · DATA & INTEGRATION ARCHITECTURE</div>
+      <h1>From prototype evidence to production-grade data lineage.</h1>
+      <p>Define the enterprise objects, evidence sources and integration contracts before connecting live geospatial and climate data.</p>
+    </div>
+    <div class="hero-actions">
+      <button class="primary" onclick="runArchitectureReadiness()">Run readiness check</button>
+      <button onclick="showPage('remoteEvidence')">Open Remote Evidence</button>
+    </div>
+  </div>
+
+  <div class="grid g4 premium-kpis">
+    <div class="kpi-card"><div class="kpi-label">DATA MODEL</div><div id="archModel" class="metric">Ready</div><div class="muted">Organization → Project → Dataset</div></div>
+    <div class="kpi-card"><div class="kpi-label">EVIDENCE SOURCES</div><div id="archSources" class="metric">4</div><div class="muted">Claim · GPS · EO · Documents</div></div>
+    <div class="kpi-card"><div class="kpi-label">INTEGRATION STATUS</div><div id="archIntegration" class="metric">Prototype</div><div class="muted">Live connectors not yet enabled</div></div>
+    <div class="kpi-card"><div class="kpi-label">LINEAGE</div><div id="archLineage" class="metric">Defined</div><div class="muted">Evidence → Calculation → Passport</div></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card dashboard-card">
+      <div class="section-head"><div><div class="eyebrow">ENTERPRISE OBJECT MODEL</div><h2>ANVORA system of record</h2></div><span class="mini-status">ARCHITECTURE</span></div>
+      <div class="workflow-track" style="grid-template-columns:repeat(3,1fr)">
+        <button><span>01</span><b>Organization</b><small>Tenant / enterprise identity</small></button>
+        <button><span>02</span><b>Project</b><small>Crop, geography, reporting period</small></button>
+        <button><span>03</span><b>Dataset</b><small>Uploaded and validated records</small></button>
+        <button><span>04</span><b>Plot / Lot</b><small>Field and seed-lot identity</small></button>
+        <button><span>05</span><b>Evidence</b><small>Claim, document, GPS, EO</small></button>
+        <button><span>06</span><b>Calculation Run</b><small>Versioned methodology and factors</small></button>
+        <button><span>07</span><b>MRV Record</b><small>Controls, gaps and readiness</small></button>
+        <button><span>08</span><b>Climate Passport</b><small>Shareable traceable output</small></button>
+        <button><span>09</span><b>Disclosure</b><small>Framework-specific reporting</small></button>
+      </div>
+    </div>
+    <div class="card dashboard-card">
+      <div class="section-head"><div><div class="eyebrow">DATA SOURCE REGISTRY</div><h2>Integration readiness</h2></div><span class="mini-status">NO LIVE CLAIM</span></div>
+      <div class="signal-list">
+        <div><span class="signal-icon">GPS</span><div><b>Field boundary / coordinates</b><p>Required for spatial identity and area corroboration.</p></div><span class="status-chip warn">Planned</span></div>
+        <div><span class="signal-icon">S1</span><div><b>Sentinel-1 radar</b><p>Candidate source for inundation / wet-dry pattern analysis.</p></div><span class="status-chip warn">Planned</span></div>
+        <div><span class="signal-icon">S2</span><div><b>Sentinel-2 optical</b><p>Candidate source for crop and seasonal condition corroboration.</p></div><span class="status-chip warn">Planned</span></div>
+        <div><span class="signal-icon">WX</span><div><b>Weather / climate</b><p>Contextual data for activity and seasonal interpretation.</p></div><span class="status-chip warn">Planned</span></div>
+        <div><span class="signal-icon">DOC</span><div><b>Documents</b><p>Invoices, field records and supporting evidence.</p></div><span class="status-chip ok">Available</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="section-head"><div><div class="eyebrow">LINEAGE CONTRACT</div><h2>Every climate result must remain traceable</h2></div><span class="mini-status">CONTROLLED</span></div>
+    <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>Object</th><th>Minimum identity</th><th>Version control</th><th>Downstream use</th></tr></thead><tbody>
+      <tr><td>Dataset</td><td>Dataset ID + source + period</td><td>Upload/version timestamp</td><td>Validation</td></tr>
+      <tr><td>Evidence</td><td>Evidence ID + source + acquisition</td><td>Evidence version / provenance</td><td>Fusion & MRV</td></tr>
+      <tr><td>Methodology</td><td>Methodology ID</td><td>Locked version</td><td>Calculation</td></tr>
+      <tr><td>Calculation</td><td>Run ID + fingerprint</td><td>Immutable run version</td><td>Passport / disclosure</td></tr>
+      <tr><td>Passport</td><td>Passport ID</td><td>Issue / supersede status</td><td>External sharing</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="section-head"><div><div class="eyebrow">PRODUCTION READINESS</div><h2>What we connect next</h2></div></div>
+    <div id="archChecklist" class="signal-list">
+      <div><span class="signal-icon">01</span><div><b>Live geospatial provider</b><p>Connect field boundaries and acquisition metadata.</p></div><span class="status-chip warn">Next</span></div>
+      <div><span class="signal-icon">02</span><div><b>Earth-observation pipeline</b><p>Ingest and process Sentinel observations with reproducible algorithms.</p></div><span class="status-chip warn">Next</span></div>
+      <div><span class="signal-icon">03</span><div><b>Weather data service</b><p>Attach source, location and time-window provenance to climate context.</p></div><span class="status-chip warn">Next</span></div>
+      <div><span class="signal-icon">04</span><div><b>Production database + API</b><p>Move browser-local state into Organization / Project / Dataset tenancy.</p></div><span class="status-chip warn">Next</span></div>
+      <div><span class="signal-icon">05</span><div><b>Authentication & RBAC</b><p>Introduce after the core data and evidence contracts are stable.</p></div><span class="status-chip neutral">Later</span></div>
+    </div>
+  </div>
+</section>
+
+
+<section id="connectors" class="page">
+  <div class="premium-hero" style="margin-bottom:18px">
+    <div>
+      <div class="eyebrow">ANVORA · v4.3 · EO OBSERVATION ENGINE</div>
+      <h1>Live Earth-Observation Catalogue POC</h1>
+      <p>Connect ANVORA to the Copernicus catalogue at the metadata layer first — before introducing authenticated image processing or backend credentials.</p>
+    </div>
+    <div class="hero-actions"><button class="primary" onclick="runLiveCatalogueProbe()">Probe live catalogue</button><button onclick="runConnectorReadiness()">Run readiness</button><button onclick="showPage('architecture')">Back to architecture</button></div>
+  </div>
+
+  <div class="notice"><b>Prototype boundary:</b> This screen defines the integration contract. It does not claim that live satellite data is connected or that an observation proves a farm practice. Production evidence will require authenticated data access, geospatial processing, provenance and validation.</div>
+
+  <div class="grid g4 premium-kpis" style="margin-top:18px">
+    <div class="kpi-card"><div class="kpi-label">EO SOURCES</div><div id="connSources" class="metric">3</div><div class="muted">Satellite + weather</div></div>
+    <div class="kpi-card"><div class="kpi-label">CONNECTOR STATE</div><div id="connState" class="metric">Designed</div><div class="muted">No live credentials</div></div>
+    <div class="kpi-card"><div class="kpi-label">EVIDENCE OUTPUT</div><div id="connEvidence" class="metric">Defined</div><div class="muted">Observation record</div></div>
+    <div class="kpi-card"><div class="kpi-label">AUDIT PROVENANCE</div><div id="connProv" class="metric">Defined</div><div class="muted">Source + acquisition + algorithm</div></div>
+  </div>
+
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card">
+      <div class="section-head"><div><div class="kicker">CONNECTOR REGISTRY</div><h2>Production data sources</h2></div><span class="mini-status">DESIGN ONLY</span></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Source</th><th>Purpose</th><th>Access</th><th>Status</th></tr></thead><tbody>
+        <tr><td><b>Sentinel-1</b></td><td>SAR backscatter / wet-dry dynamics</td><td>Copernicus Data Space</td><td><span class="pill">Planned</span></td></tr>
+        <tr><td><b>Sentinel-2</b></td><td>Optical crop / vegetation observations</td><td>Copernicus Data Space</td><td><span class="pill">Planned</span></td></tr>
+        <tr><td><b>Weather</b></td><td>Rainfall / temperature / climate context</td><td>Provider adapter</td><td><span class="pill">Planned</span></td></tr>
+        <tr><td><b>Field GPS</b></td><td>Boundary / spatial identity</td><td>GeoJSON / mobile capture</td><td><span class="pill">Defined</span></td></tr>
+      </tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="section-head"><div><div class="kicker">EVIDENCE PIPELINE</div><h2>How live evidence will flow</h2></div></div>
+      <div class="workflow-track">
+        <button><span>01</span><b>Geometry</b><small>Plot boundary / GPS</small></button>
+        <button><span>02</span><b>Search</b><small>Time + location</small></button>
+        <button><span>03</span><b>Process</b><small>Mask / derive metrics</small></button>
+        <button><span>04</span><b>Compare</b><small>Claim vs observation</small></button>
+        <button><span>05</span><b>Ledger</b><small>Immutable provenance</small></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <div class="section-head"><div><div class="kicker">LIVE CATALOGUE POC</div><h2>Copernicus Sentinel acquisition discovery</h2></div><span class="mini-status">METADATA ONLY</span></div>
+    <div class="notice"><b>What this test does:</b> checks the live Copernicus Data Space STAC collection endpoint and prepares a real STAC search request. It does not download imagery, prove a farm practice, or expose provider credentials.</div>
+    <div class="grid g4" style="margin-top:14px">
+      <div><label>Collection</label><select id="liveCollection"><option value="sentinel-1-grd">Sentinel-1 GRD</option><option value="sentinel-2-l2a">Sentinel-2 L2A</option></select></div>
+      <div><label>West / Min Lon</label><input id="liveWest" value="79.00"></div>
+      <div><label>South / Min Lat</label><input id="liveSouth" value="17.00"></div>
+      <div><label>East / Max Lon</label><input id="liveEast" value="79.10"></div>
+    </div>
+    <div class="grid g4" style="margin-top:12px">
+      <div><label>North / Max Lat</label><input id="liveNorth" value="17.10"></div>
+      <div><label>From</label><input id="liveFrom" type="date" value="2026-06-01"></div>
+      <div><label>To</label><input id="liveTo" type="date" value="2026-09-19"></div>
+      <div><label>Limit</label><input id="liveLimit" type="number" min="1" max="10" value="3"></div>
+    </div>
+    <div class="hero-actions" style="margin-top:14px"><button class="primary" onclick="runLiveCatalogueProbe()">Run live metadata probe</button><button onclick="copyStacRequest()">Copy STAC request JSON</button></div>
+    <div id="liveProbeStatus" class="control-list" style="margin-top:14px"><div class="control-row"><div><b>Catalogue endpoint</b><small>https://stac.dataspace.copernicus.eu/v1/</small></div><span class="pill">Not tested</span></div></div>
+    <pre id="stacPreview" style="margin-top:14px;white-space:pre-wrap;background:#f6f8f6;padding:14px;border-radius:12px;border:1px solid #dce5df;overflow:auto">Run the probe to generate a STAC search request.</pre>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <div class="section-head"><div><div class="kicker">LIVE ACQUISITION DISCOVERY</div><h2>Find real Sentinel acquisitions for an ANVORA plot</h2></div><span class="mini-status">CATALOGUE METADATA</span></div>
+    <div class="notice"><b>Purpose:</b> discover actual catalogue items intersecting a plot area and time window. This stores acquisition metadata only; it does not download imagery or infer a farm practice.</div>
+    <div class="grid g4" style="margin-top:14px">
+      <div><label>Plot ID</label><input id="acqPlotId" value="PLOT-R002"></div>
+      <div><label>West / Min Lon</label><input id="acqWest" value="79.00"></div>
+      <div><label>South / Min Lat</label><input id="acqSouth" value="17.00"></div>
+      <div><label>East / Max Lon</label><input id="acqEast" value="79.10"></div>
+    </div>
+    <div class="grid g4" style="margin-top:12px">
+      <div><label>North / Max Lat</label><input id="acqNorth" value="17.10"></div>
+      <div><label>From</label><input id="acqFrom" type="date" value="2026-06-01"></div>
+      <div><label>To</label><input id="acqTo" type="date" value="2026-09-19"></div>
+      <div><label>Max results</label><input id="acqLimit" type="number" min="1" max="20" value="5"></div>
+    </div>
+    <div class="hero-actions" style="margin-top:14px"><button class="primary" onclick="discoverLiveAcquisitions()">Discover live acquisitions</button><button onclick="useCatalogueDefaults()">Use catalogue defaults</button></div>
+    <div id="acqStatus" class="control-list" style="margin-top:14px"><div class="control-row"><div><b>Acquisition discovery</b><small>Ready to query the Copernicus STAC search endpoint.</small></div><span class="pill">Ready</span></div></div>
+    <div id="acqResults" style="margin-top:14px"></div>
+    <pre id="acqRequestPreview" style="margin-top:14px;white-space:pre-wrap;background:#f6f8f6;padding:14px;border-radius:12px;border:1px solid #dce5df;overflow:auto">The live acquisition request will appear here.</pre>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <div class="section-head"><div><div class="kicker">V4.3 · EO OBSERVATION ENGINE</div><h2>Turn a live acquisition into an auditable observation record</h2></div><span class="mini-status">METADATA-FIRST</span></div>
+    <div class="notice"><b>Observation boundary:</b> v4.3 creates a reproducible observation record from a real catalogue acquisition and the plot search geometry. It validates temporal/spatial catalogue context and preserves provenance, but it does <b>not</b> claim a wet/dry practice, AWD event or farmer action until authenticated imagery is processed by a validated algorithm.</div>
+    <div class="grid g4" style="margin-top:14px">
+      <div class="kpi-card"><div class="kpi-label">SELECTED ACQUISITION</div><div id="eoAcqId" class="metric" style="font-size:18px">—</div><div class="muted">Live catalogue item</div></div>
+      <div class="kpi-card"><div class="kpi-label">SPATIAL MATCH</div><div id="eoSpatial" class="metric">—</div><div class="muted">Catalogue footprint vs plot search</div></div>
+      <div class="kpi-card"><div class="kpi-label">TEMPORAL MATCH</div><div id="eoTemporal" class="metric">—</div><div class="muted">Acquisition inside requested window</div></div>
+      <div class="kpi-card"><div class="kpi-label">PRACTICE SIGNAL</div><div id="eoPractice" class="metric">Not assessed</div><div class="muted">Requires imagery processing</div></div>
+    </div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="card" style="box-shadow:none;margin:0">
+        <div class="section-head"><div><div class="kicker">OBSERVATION RECORD</div><h3>Plot-level provenance</h3></div></div>
+        <div id="eoRecord" class="control-list"><div class="control-row"><div><b>No acquisition selected</b><small>Run discovery, then select a catalogue item.</small></div><span class="pill">Waiting</span></div></div>
+      </div>
+      <div class="card" style="box-shadow:none;margin:0">
+        <div class="section-head"><div><div class="kicker">QUALITY GATE</div><h3>What can be concluded now?</h3></div></div>
+        <div id="eoQuality" class="control-list"><div class="control-row"><div><b>Catalogue metadata only</b><small>No backscatter metric or wet/dry classification has been derived.</small></div><span class="pill">Not assessed</span></div></div>
+      </div>
+    </div>
+    <div class="hero-actions" style="margin-top:14px"><button class="primary" onclick="createEOObservation()">Create observation record</button><button onclick="copyEOObservation()">Copy observation JSON</button></div>
+    <pre id="eoJson" style="margin-top:14px;white-space:pre-wrap;background:#f6f8f6;padding:14px;border-radius:12px;border:1px solid #dce5df;overflow:auto">Observation JSON will appear here.</pre>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <div class="section-head"><div><div class="kicker">OBSERVATION CONTRACT</div><h2>What ANVORA will store from each remote observation</h2></div></div>
+    <div class="grid g4">
+      <div class="mini-card"><b>Identity</b><p>Plot ID, geometry version, acquisition ID, observation date.</p></div>
+      <div class="mini-card"><b>Source</b><p>Mission, product type, catalogue reference and provider.</p></div>
+      <div class="mini-card"><b>Derived metric</b><p>Backscatter, vegetation index, wetness indicator or event signal.</p></div>
+      <div class="mini-card"><b>Provenance</b><p>Algorithm version, parameters, processing timestamp and quality flags.</p></div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card">
+      <div class="section-head"><div><div class="kicker">WATER REGIME</div><h2>Evidence logic</h2></div></div>
+      <div class="signal-list">
+        <div><span class="signal-icon">01</span><div><b>Claim</b><p>Farmer/corporate record: AWD, continuous flooding, intermittent or rainfed.</p></div></div>
+        <div><span class="signal-icon">02</span><div><b>Observation</b><p>EO time series identifies probable wet/dry transitions within the plot.</p></div></div>
+        <div><span class="signal-icon">03</span><div><b>Assessment</b><p>Consistent, partially consistent, review or not assessed — never “proven” solely from a satellite signal.</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-head"><div><div class="kicker">SECURITY &amp; SCALE</div><h2>Production architecture decision</h2></div></div>
+      <ul class="clean-list">
+        <li><b>Browser:</b> upload geometry and request analysis — no permanent provider secrets.</li>
+        <li><b>Backend:</b> authenticate provider, queue jobs and cache products.</li>
+        <li><b>Processing:</b> derive plot-level observations and quality flags.</li>
+        <li><b>Ledger:</b> retain source IDs, versions, timestamps and calculation linkage.</li>
+      </ul>
+      <div class="notice" style="margin-top:12px"><b>Design rule:</b> live API keys should not be embedded in the GitHub Pages frontend.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <div class="section-head"><div><div class="kicker">READINESS CHECK</div><h2 id="connReadinessTitle">Connector integration is designed, not connected</h2></div></div>
+    <div id="connChecklist" class="control-list"></div>
+  </div>
+</section>
+
 </main>
-<footer><div class="notice" style="margin-bottom:14px"><b>v2.1 release-candidate note:</b> Leadership drilldown, methodology screening and export workbooks are decision-support features. Methodology screening is not credit issuance, and modeled reductions are not verified credits.</div><div class="wrap">ANVORA | Seed Climate Ledger · Public Beta v1.4 · Concept &amp; Architecture: Raja Vadlamani · Calculation outputs are prototype outputs and are not carbon-credit certification.</div>
+<footer><div class="notice" style="margin-bottom:14px"><b>v2.1 release-candidate note:</b> Leadership drilldown, methodology screening and export workbooks are decision-support features. Methodology screening is not credit issuance, and modeled reductions are not verified credits.</div><div class="wrap">ANVORA | Seed Climate Ledger · Professional Prototype v4.2 · Concept &amp; Architecture: Raja Vadlamani · Calculation outputs are prototype outputs and are not carbon-credit certification.</div>
 <div class="raja-signature">Created and developed by <strong>Raja Vadlamani</strong> · ANVORA Agricultural Climate Intelligence<br>Contact: <a href="mailto:raja.vadlamani@gmail.com">raja.vadlamani@gmail.com</a></div>
 
 <div class="report-note">ANVORA dashboards and review reports can be exported to Excel or PDF for management, audit and presentation use.</div>
 </footer>
 
 <script>
-const S={lots:[],plots:[],project:{},calc:null,feedback:[],
+const S={lots:[],plots:[],project:{},methodology:{},calc:null,calcHistory:[],feedback:[],
 controls:{productVersion:'ANVORA v1.4',methodVersion:'RICE-PROTOTYPE v0.1',factorVersion:'EF-REGISTRY v0.1',gwpVersion:'Prototype GWP set'}};
 const lotCols=["Seed Lot ID","Crop","Variety/Hybrid","Season","State","District","Production Start","Production End","Harvested Seed kg","Finished Saleable Seed kg","Evidence ID","Data Class","Notes"];
 const plotCols=["Seed Lot ID","Plot ID","Village","District","Area ha","Crop Days","Water Regime","Pre-season Flooding","Drainage/AWD Events","Urea kg/ha","DAP kg/ha","MOP kg/ha","Other N kg/ha","Organic Amendment","Residue Fate","Crop Protection kg/ha","Biological Intervention","Evidence ID","Data Class","Notes"];
-function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===id));if(id==='validation')renderValidation();if(id==='workspace')renderTables();if(id==='passport')renderPassport();if(id==='feedback')renderFeedback();if(id==='control')loadControls();if(id==='evidence')renderEvidence();if(id==='uncertainty')renderUncertainty();if(id==='mrv')renderMRV();if(id==='intelligence')renderIntelligence()}
-document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+function safeCall(fn){try{if(typeof fn==='function')fn()}catch(e){console.warn('ANVORA view refresh:',e)}}
+function showPage(id){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  const target=document.getElementById(id);
+  if(!target)return;
+  target.classList.add('active');
+  document.querySelectorAll('.secondary-nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===id));
+  if(id==='validation')safeCall(renderValidation);
+  if(id==='remoteEvidence')safeCall(renderRemoteEvidence);
+  if(id==='workspace')safeCall(renderTables);
+  if(id==='passport')safeCall(renderPassport);
+  if(id==='feedback')safeCall(renderFeedback);
+  if(id==='control')safeCall(loadControls);
+  if(id==='evidence')safeCall(renderEvidence);
+  if(id==='uncertainty')safeCall(renderUncertainty);
+  if(id==='mrv')safeCall(renderMRV);
+  if(id==='intelligence')safeCall(renderIntelligence);
+  target.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function openPersona(id){
+  if(id==='workspace'){showPage('workspace');return}
+  if(id==='farmer'){
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    document.getElementById('farmer')?.scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
+  if(id==='auditor'){
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    document.getElementById('auditor')?.scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
+  if(id==='leadership'){
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    document.getElementById('leadership')?.scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
+}
+document.querySelectorAll('.secondary-nav button').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
 function importExcel(){
 const f=document.getElementById('excelFile').files[0];
 if(!f){alert('Please select an Excel workbook first.');return}
@@ -689,15 +1282,74 @@ function generateSynthetic(){const n=+nLots.value,ppl=+plotsPerLot.value,a=+area
 function renderTables(){lotsTable.innerHTML=S.lots.length?'<table><tr><th>Lot</th><th>Crop</th><th>Harvest kg</th><th>Saleable kg</th><th>Evidence</th></tr>'+S.lots.slice(0,20).map(x=>`<tr><td>${x['Seed Lot ID']}</td><td>${x.Crop}</td><td>${x['Harvested Seed kg']}</td><td>${x['Finished Saleable Seed kg']}</td><td>${x['Evidence ID']||'—'}</td></tr>`).join('')+'</table>':'No lots loaded.';plotsTable.innerHTML=S.plots.length?'<table><tr><th>Plot</th><th>Area ha</th><th>Water</th><th>N kg/ha</th><th>Evidence</th></tr>'+S.plots.slice(0,25).map(x=>`<tr><td>${x['Plot ID']}</td><td>${x['Area ha']||'—'}</td><td>${x['Water Regime']}</td><td>${nval(x['Urea kg/ha'])}</td><td>${x['Evidence ID']||'—'}</td></tr>`).join('')+'</table>':'No plots loaded.'}
 function nval(x){let v=parseFloat(x)||0;return v}
 function renderHome(){homeData.textContent=S.plots.length?S.plots.length+' plots':'No dataset';homeDataSub.textContent=S.plots.length?(S.plots.reduce((a,x)=>a+(parseFloat(x['Area ha'])||0),0)).toFixed(1)+' ha loaded':'Create synthetic data or import CSV';homeMRV.textContent=S.calc?'Review':'Not ready'}
-function renderValidation(){let pass=0,issues=[];const area=S.plots.reduce((a,x)=>a+(parseFloat(x['Area ha'])||0),0);if(!S.plots.length){validationResults.innerHTML='<div class="notice">No dataset. Generate or import data first.</div>';return}function chk(name,ok,detail){ok?pass++:issues.push({name,detail})}chk('Required plot fields',S.plots.every(x=>x['Seed Lot ID']&&x['Plot ID']&&x['Water Regime']), 'One or more required identifiers/water fields are missing.');chk('Positive plot area',S.plots.every(x=>parseFloat(x['Area ha'])>0),'One or more plots have missing or non-positive area.');chk('Crop days',S.plots.every(x=>parseFloat(x['Crop Days'])>0),'One or more plots have missing crop days.');chk('Evidence IDs',S.plots.every(x=>x['Evidence ID']),'One or more plots have no evidence ID.');chk('Lot linkage',S.plots.every(x=>S.lots.some(l=>l['Seed Lot ID']===x['Seed Lot ID'])),'One or more plots do not link to a lot.');chk('Lot mass balance',S.lots.every(x=>nval(x['Finished Saleable Seed kg'])<=nval(x['Harvested Seed kg'])),'Finished saleable seed exceeds harvested seed for one or more lots.');vPlots.textContent=S.plots.length;vArea.textContent=area.toFixed(1)+' ha';vPass.textContent=pass;vIssues.textContent=issues.length;const score=Math.round((pass/(pass+issues.length))*100);gateBar.style.width=score+'%';gateTitle.textContent=issues.length?'Data Review Required':'Structural & logical checks passed';validationResults.innerHTML=(issues.length?'<div class="notice warning"><b>Open issues</b><ul>'+issues.map(i=>'<li><b>'+i.name+':</b> '+i.detail+'</li>').join('')+'</ul></div>':'<div class="notice"><b>Quality gate passed for prototype validation.</b> Calculation can proceed, subject to factor/methodology/evidence review.</div>')+'<h3>Checks completed</h3><table><tr><th>Check</th><th>Status</th></tr>'+[['Required plot fields',S.plots.every(x=>x['Seed Lot ID']&&x['Plot ID']&&x['Water Regime'])],['Positive plot area',S.plots.every(x=>parseFloat(x['Area ha'])>0)],['Crop days',S.plots.every(x=>parseFloat(x['Crop Days'])>0)],['Evidence IDs',S.plots.every(x=>x['Evidence ID'])],['Lot linkage',S.plots.every(x=>S.lots.some(l=>l['Seed Lot ID']===x['Seed Lot ID']))],['Lot mass balance',S.lots.every(x=>nval(x['Finished Saleable Seed kg'])<=nval(x['Harvested Seed kg']))]].map(x=>'<tr><td>'+x[0]+'</td><td>'+(x[1]?'<span class="pill">Pass</span>':'<span class="pill warn">Review</span>')+'</td></tr>').join('')+'</table>'}
+function renderValidation(){
+  let pass=0,issues=[],review=[];
+  const plots=Array.isArray(S.plots)?S.plots:[], lots=Array.isArray(S.lots)?S.lots:[];
+  const area=plots.reduce((a,x)=>a+(parseFloat(x['Area ha'])||0),0);
+  if(!plots.length){
+    validationResults.innerHTML='<div class="notice">No dataset. Generate or import data first.</div>';
+    ['fusionData','fusionEvidence','fusionRemote','fusionGate'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='—'});
+    document.getElementById('fusionMatrix').innerHTML='Run validation after loading a dataset.';
+    return;
+  }
+  function chk(name,ok,detail){ok?pass++:issues.push({name,detail})}
+  const required=plots.every(x=>x['Seed Lot ID']&&x['Plot ID']&&x['Water Regime']);
+  const positiveArea=plots.every(x=>parseFloat(x['Area ha'])>0);
+  const cropDays=plots.every(x=>parseFloat(x['Crop Days'])>0);
+  const evidence=plots.filter(x=>String(x['Evidence ID']||'').trim()).length;
+  const linked=plots.every(x=>lots.some(l=>l['Seed Lot ID']===x['Seed Lot ID']));
+  const mass=lots.length?lots.every(x=>nval(x['Finished Saleable Seed kg'])<=nval(x['Harvested Seed kg'])):true;
+  chk('Required plot fields',required,'One or more required identifiers or water-regime fields are missing.');
+  chk('Positive plot area',positiveArea,'One or more plots have missing or non-positive area.');
+  chk('Crop days',cropDays,'One or more plots have missing crop days.');
+  chk('Evidence IDs',evidence===plots.length,'One or more plots have no evidence ID.');
+  chk('Lot linkage',linked,'One or more plots do not link to a lot.');
+  chk('Lot mass balance',mass,'Finished saleable seed exceeds harvested seed for one or more lots.');
+  const dataScore=Math.round((required?20:0)+(positiveArea?20:0)+(cropDays?15:0)+(linked?15:0)+(mass?15:0)+(evidence/plots*15));
+  const evidenceScore=Math.round(evidence/plots*100);
+  const remoteScore=plots.length?Math.round(plots.filter(p=>remoteValue(p,['Latitude','latitude','GPS Latitude','GPS Lat'])!==''&&remoteValue(p,['Longitude','longitude','GPS Longitude','GPS Lon'])!=='').length/plots.length*100):0;
+  const structuralPass=issues.length===0;
+  const gate=structuralPass&&evidenceScore===100?'CONDITIONAL PASS':'REVIEW REQUIRED';
+  vPlots.textContent=plots.length;vArea.textContent=area.toFixed(1)+' ha';vPass.textContent=pass;vIssues.textContent=issues.length;
+  gateBar.style.width=Math.max(0,Math.min(100,dataScore))+'%';
+  gateTitle.textContent=gate;
+  document.getElementById('fusionData').textContent=dataScore+'%';
+  document.getElementById('fusionEvidence').textContent=evidenceScore+'%';
+  document.getElementById('fusionRemote').textContent=remoteScore+'%';
+  document.getElementById('fusionGate').textContent=gate;
+  const matrixRows=plots.slice(0,100).map((p,i)=>{
+    const id=p['Plot ID']||('Plot '+(i+1)), ev=String(p['Evidence ID']||'').trim(), water=p['Water Regime']||'—', events=p['Drainage/AWD Events']||'0';
+    const coords=remoteValue(p,['Latitude','latitude','GPS Latitude','GPS Lat'])!==''&&remoteValue(p,['Longitude','longitude','GPS Longitude','GPS Lon'])!=='';
+    const claimStatus=ev?'Traceable':'Missing evidence ID';
+    const remoteStatus=coords?'Spatial input available':'No coordinates';
+    const overall=ev&&coords?'Review / corroborate':'Gap';
+    return '<tr><td><b>'+esc(id)+'</b></td><td>'+esc(water)+'</td><td>'+esc(events)+'</td><td>'+esc(claimStatus)+'</td><td>'+esc(remoteStatus)+'</td><td><span class="pill warn">'+esc(overall)+'</span></td></tr>';
+  }).join('');
+  document.getElementById('fusionMatrix').innerHTML='<table><tr><th>Plot</th><th>Claimed regime</th><th>Claimed events</th><th>Evidence link</th><th>Spatial input</th><th>Assessment</th></tr>'+matrixRows+'</table>';
+  validationResults.innerHTML=(issues.length?'<div class="notice warning"><b>Structural issues detected</b><ul>'+issues.map(i=>'<li><b>'+i.name+':</b> '+i.detail+'</li>').join('')+'</ul></div>':'<div class="notice"><b>Structural checks passed.</b> Evidence corroboration remains a separate gate before any production assurance claim.</div>')+
+    '<h3>Checks completed</h3><table><tr><th>Check</th><th>Status</th></tr>'+[
+      ['Required plot fields',required],['Positive plot area',positiveArea],['Crop days',cropDays],['Evidence IDs',evidence===plots.length],['Lot linkage',linked],['Lot mass balance',mass]
+    ].map(x=>'<tr><td>'+x[0]+'</td><td>'+(x[1]?'<span class="pill">Pass</span>':'<span class="pill warn">Review</span>')+'</td></tr>').join('')+'</table>'+
+    '<div class="notice warning" style="margin-top:14px"><b>Gate interpretation:</b> '+gate+'. Remote observations in the current prototype are simulated and cannot independently verify farmer practices.</div>';
+}
 function loadControls(){productVersion.value=S.controls.productVersion;methodVersion.value=S.controls.methodVersion;factorVersion.value=S.controls.factorVersion;gwpVersion.value=S.controls.gwpVersion;regCH4.textContent=(efCH4.value||'120')+' kg CH₄/ha';regN2O.textContent=(efN2O.value||'.01')+' kg N₂O-N/kg N';regEnergy.textContent=(efEnergy.value||'.7')+' kg CO₂e/kWh';regPost.textContent=(efPost.value||'45')+' kg CO₂e/t seed';if(S.calc)fingerprint.innerHTML='<b>Calculation fingerprint</b><br>Run ID: <b>'+esc(S.calc.runId)+'</b>';}
+function controlsSnapshot(){return {productVersion:productVersion.value.trim()||'ANVORA v1.4',methodVersion:methodVersion.value.trim()||'RICE-PROTOTYPE v0.1',factorVersion:factorVersion.value.trim()||'EF-REGISTRY v0.1',gwpVersion:gwpVersion.value.trim()||'Prototype GWP set'};}
+function sameControls(a,b){return a&&b&&a.productVersion===b.productVersion&&a.methodVersion===b.methodVersion&&a.factorVersion===b.factorVersion&&a.gwpVersion===b.gwpVersion;}
+function fingerprintHash(obj){let str=JSON.stringify(obj),h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return ('00000000'+(h>>>0).toString(16)).slice(-8).toUpperCase();}
+function renderCalcHistory(){
+ const box=document.getElementById('calcHistory'),status=document.getElementById('calcLockStatus');
+ if(!box||!status)return;
+ if(!S.calcHistory.length){status.className='notice warning';status.innerHTML='<b>No calculation run locked yet.</b> Run the calculation to create the first controlled version.';box.innerHTML='<div class="muted">Run history will appear here.</div>';return;}
+ const latest=S.calcHistory[S.calcHistory.length-1];
+ status.className='notice';status.innerHTML='<b>Methodology locked for Run '+esc(latest.version)+'</b> · '+esc(latest.runId)+' · Fingerprint <b>'+esc(latest.fingerprint)+'</b>';
+ box.innerHTML='<table><tr><th>Version</th><th>Run ID</th><th>Methodology</th><th>Factors</th><th>GWP</th><th>Fingerprint</th><th>Status</th></tr>'+S.calcHistory.map((r,i)=>'<tr><td><b>'+esc(r.version)+'</b></td><td>'+esc(r.runId)+'</td><td>'+esc(r.controls.methodVersion)+'</td><td>'+esc(r.controls.factorVersion)+'</td><td>'+esc(r.controls.gwpVersion)+'</td><td><code>'+esc(r.fingerprint)+'</code></td><td>'+(i===S.calcHistory.length-1?'<span class="pill">Current</span>':'<span class="pill warn">Superseded</span>')+'</td></tr>').join('')+'</table>';
+}
 function saveControls(){
-S.controls={
-productVersion:productVersion.value.trim()||'ANVORA v1.4',
-methodVersion:methodVersion.value.trim()||'RICE-PROTOTYPE v0.1',
-factorVersion:factorVersion.value.trim()||'EF-REGISTRY v0.1',
-gwpVersion:gwpVersion.value.trim()||'Prototype GWP set'};
-alert('Scientific control versions saved for this browser session.');
+ const next=controlsSnapshot();
+ const changed=S.calc && !sameControls(S.calc.controls,next);
+ S.controls=next;loadControls();
+ alert(changed?'Control versions changed. The existing calculation remains preserved; the next run will create a new calculation version.':'Scientific control versions saved for this browser session.');
+ renderCalcHistory();
 }
 function calculate(){
 if(!S.plots.length){alert('Load or generate data first.');return}
@@ -718,9 +1370,14 @@ post=S.lots.reduce((a,x)=>a+nval(x['Finished Saleable Seed kg'])/1000,0)*(parseF
 let ch4co2e=ch4*28,n2oco2e=n2o,tot=ch4co2e+n2oco2e+energy+post;
 let finished=S.lots.reduce((a,x)=>a+nval(x['Finished Saleable Seed kg']),0)/1000;
 let runId='ANV-'+new Date().toISOString().replace(/\D/g,'').slice(0,14)+'-'+Math.random().toString(36).slice(2,8).toUpperCase();
-S.calc={runId,area,ch4,ch4co2e,n2o:n2oco2e,energy,post,total:tot,finished,intensity:finished?tot/(finished*1000):0,
+const runControls={...S.controls};
+const version='CALC-'+String(S.calcHistory.length+1).padStart(3,'0');
+S.calc={runId,version,area,ch4,ch4co2e,n2o:n2oco2e,energy,post,total:tot,finished,intensity:finished?tot/(finished*1000):0,
 factors:{CH4:efCH4.value,N2O:efN2O.value,Energy:efEnergy.value,Post:efPost.value},
-timestamp:new Date().toISOString(),controls:{...S.controls}};
+timestamp:new Date().toISOString(),controls:runControls};
+const runRecord={...S.calc,fingerprint:fingerprintHash({project:S.project,plots:S.plots,lots:S.lots,controls:runControls,factors:S.calc.factors,version})};
+S.calc.fingerprint=runRecord.fingerprint;
+S.calcHistory.push(runRecord);
 calcOutput.innerHTML='<div class="grid g4">'+
 [['CH₄ CO₂e',ch4co2e.toFixed(1)+' kg'],['N₂O CO₂e',n2oco2e.toFixed(1)+' kg'],['Energy',energy.toFixed(1)+' kg'],['Post-harvest',post.toFixed(1)+' kg']]
 .map(x=>'<div class="card"><div class="kicker">'+x[0]+'</div><div class="metric">'+x[1]+'</div></div>').join('')+
@@ -736,7 +1393,10 @@ fingerprint.innerHTML='<b>Calculation fingerprint</b><br>'+
 'GWP Set: '+esc(S.controls.gwpVersion)+'<br>'+
 'Engine: '+esc(S.controls.productVersion)+'<br>'+
 'Run ID: <b>'+runId+'</b><br>'+
+'Calculation version: <b>'+version+'</b><br>'+
+'Fingerprint: <b>'+esc(S.calc.fingerprint)+'</b><br>'+
 'Timestamp: '+esc(S.calc.timestamp);
+renderCalcHistory();
 renderHome();showPage('calculation');
 }
 
@@ -754,6 +1414,8 @@ passportBody.innerHTML='<table><tr><th>Field</th><th>Value</th></tr>'+
 '<tr><td>Methodology</td><td>'+esc(S.calc.controls.methodVersion)+'</td></tr>'+
 '<tr><td>Factor Registry</td><td>'+esc(S.calc.controls.factorVersion)+'</td></tr>'+
 '<tr><td>GWP Set</td><td>'+esc(S.calc.controls.gwpVersion)+'</td></tr>'+
+'<tr><td>Calculation Version</td><td>'+esc(S.calc.version||'—')+'</td></tr>'+
+'<tr><td>Calculation Fingerprint</td><td>'+esc(S.calc.fingerprint||'—')+'</td></tr>'+
 '<tr><td>Calculation Run ID</td><td>'+esc(S.calc.runId)+'</td></tr>'+
 '<tr><td>Calculation timestamp</td><td>'+esc(S.calc.timestamp)+'</td></tr>'+
 '<tr><td>MRV status</td><td>Prototype — not independently verified</td></tr></table>'+
@@ -787,6 +1449,39 @@ function downloadFeedback(){if(!S.feedback.length){alert('No feedback recorded.'
 function downloadText(name,text,type){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
 function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
+let remoteEvidenceRows=[];
+let selectedRemotePlot=0;
+function remoteValue(p,keys){for(const k of keys){if(p&&p[k]!==undefined&&String(p[k]).trim()!=='')return p[k]}return ''}
+function renderRemoteEvidence(){
+ const plots=Array.isArray(S.plots)?S.plots:[];
+ const gps=plots.filter(p=>remoteValue(p,['Latitude','latitude','GPS Latitude','GPS Lat'])!==''&&remoteValue(p,['Longitude','longitude','GPS Longitude','GPS Lon'])!=='').length;
+ document.getElementById('rePlots').textContent=plots.length;
+ document.getElementById('reGPS').textContent=plots.length?Math.round(gps/plots.length*100)+'%':'0%';
+ document.getElementById('reObs').textContent=remoteEvidenceRows.length;
+ document.getElementById('reStatus').textContent=plots.length?'Pilot / not verified':'No dataset';
+ const list=document.getElementById('rePlotList');
+ list.innerHTML=plots.length?plots.slice(0,100).map((p,i)=>'<button class="re-plot '+(i===selectedRemotePlot?'active':'')+'" onclick="selectRemotePlot('+i+')"><b>'+esc(p['Plot ID']||('Plot '+(i+1)))+'</b><small>'+esc(p['Village']||p['District']||'Location not supplied')+' · '+esc(p['Crop']||'Crop not recorded')+'</small></button>').join(''):'<div class="re-mini">Load a Corporate dataset to inspect field evidence.</div>';
+ if(plots.length) showRemoteDetail(Math.min(selectedRemotePlot,plots.length-1));
+ const practices=plots.slice(0,100).map((p,i)=>{const water=p['Water Regime']||'—',events=p['Drainage/AWD Events']||'0',eo=remoteValue(p,['EO Water Observation','EO Water Observations','Remote Water Evidence']);return '<tr><td>'+esc(p['Plot ID']||('Plot '+(i+1)))+'</td><td>'+esc(water)+'</td><td>'+esc(events)+'</td><td>'+esc(eo||'Not connected')+'</td><td><span class="re-status warn">Not independently assessed</span></td><td><button onclick="selectRemotePlot('+i+')">Inspect</button></td></tr>'}).join('');
+ document.getElementById('rePracticeTable').innerHTML=plots.length?'<table><tr><th>Plot</th><th>Claimed regime</th><th>Claimed events</th><th>Imported observation</th><th>Status</th><th></th></tr>'+practices+'</table>':'<div class="notice">No plot records available.</div>';
+}
+function selectRemotePlot(i){selectedRemotePlot=i;renderRemoteEvidence()}
+function showRemoteDetail(i){
+ const p=S.plots[i]; if(!p)return; selectedRemotePlot=i;
+ const plot=p['Plot ID']||('Plot '+(i+1)),water=p['Water Regime']||'Not recorded',events=p['Drainage/AWD Events']||'0',lat=remoteValue(p,['Latitude','latitude','GPS Latitude','GPS Lat']),lon=remoteValue(p,['Longitude','longitude','GPS Longitude','GPS Lon']),hasCoords=lat!==''&&lon!=='';
+ const area=p['Area ha']||'—',eoArea=remoteValue(p,['EO Area ha','Field Area EO ha']);
+ document.getElementById('reSelectedTitle').textContent=plot+' · '+(p['Village']||p['District']||'Location not supplied');
+ document.getElementById('reIdentity').innerHTML='<div class="re-source"><span>Reported area</span><b>'+esc(area)+' ha</b></div><div class="re-source"><span>EO-derived area</span><b>'+esc(eoArea||'Not available')+'</b></div><div class="re-source"><span>Coordinates</span><b>'+esc(hasCoords?lat+', '+lon:'Not supplied')+'</b></div><div class="re-source"><span>Spatial agreement</span><span class="re-status '+(hasCoords?'ok':'warn')+'">'+(hasCoords?'Available':'Missing')+'</span></div>';
+ document.getElementById('reCompare').innerHTML='<div>Claimed water regime<br><b>'+esc(water)+'</b></div><div>Claimed AWD / drainage events<br><b>'+esc(events)+'</b></div><div>Observed probable dry-downs<br><b>Simulated · 3 events</b></div>';
+ document.getElementById('reSpatialConf').textContent=hasCoords?'Medium':'Low';
+ document.getElementById('rePracticeConf').textContent='Not assessed';
+ document.getElementById('reAuditStatus').textContent='Review required';
+ const evId='RE-'+String(plot).replace(/[^A-Za-z0-9_-]/g,'-')+'-PILOT';
+ document.getElementById('reDetail').innerHTML='<b>Evidence ID:</b> '+esc(evId)+'<br><b>Plot:</b> '+esc(plot)+'<br><b>Claim:</b> '+esc(water)+'; '+esc(events)+' drainage/AWD events<br><b>Observed signal:</b> simulated SAR dry-down sequence · 3 probable events<br><b>Source:</b> Sentinel-1 / SAR · production connector planned<br><b>Result:</b> <span class="re-status warn">Not independently assessed</span><br><b>Provenance required:</b> acquisition ID · observation timestamp · geometry · processing algorithm/version · threshold · confidence · audit timestamp';
+}
+function refreshRemoteEvidence(){remoteEvidenceRows=[];(S.plots||[]).forEach((p,i)=>remoteEvidenceRows.push({plot:p['Plot ID']||('Plot '+(i+1)),type:'Remote evidence pilot'}));selectedRemotePlot=0;renderRemoteEvidence()}
+function exportRemoteEvidence(){if(!(S.plots||[]).length){alert('Load a dataset first.');return}const rows=[['Evidence ID','Plot','Water regime claim','Drainage/AWD events','Latitude','Longitude','Remote source','Status']];S.plots.forEach((p,i)=>{const lat=remoteValue(p,['Latitude','latitude','GPS Latitude','GPS Lat']),lon=remoteValue(p,['Longitude','longitude','GPS Longitude','GPS Lon']);rows.push(['RE-'+String(p['Plot ID']||('Plot '+(i+1))).replace(/[^A-Za-z0-9_-]/g,'-')+'-PILOT',p['Plot ID']||'',p['Water Regime']||'',p['Drainage/AWD Events']||'',lat,lon,'Sentinel-1 / SAR (simulated framework)','Not independently assessed'])});const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\n');downloadText('ANVORA_remote_evidence_pilot.csv',csv,'text/csv')}
+
 function renderEvidence(){
   const plots=S.plots.length, covered=S.plots.filter(p=>String(p['Evidence ID']||'').trim()).length;
   const cov=plots?Math.round(covered/plots*100):0;
@@ -815,31 +1510,84 @@ function renderUncertainty(){
   uncertaintyFlags.innerHTML=flags.length?'<ul>'+flags.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'No structural uncertainty flags detected; scientific uncertainty still requires formal quantification.';
 }
 function renderMRV(){
-  const dataOk=S.plots.length>0&&S.lots.length>0;
-  const evidenceOk=S.plots.length>0&&S.plots.every(p=>String(p['Evidence ID']||'').trim());
+  const plots=S.plots||[], lots=S.lots||[];
+  const dataOk=plots.length>0&&lots.length>0;
+  const requiredOk=dataOk&&plots.every(p=>p['Seed Lot ID']&&p['Plot ID']&&p['Water Regime']&&parseFloat(p['Area ha'])>0&&parseFloat(p['Crop Days'])>0);
+  const linked=dataOk&&plots.every(p=>lots.some(l=>l['Seed Lot ID']===p['Seed Lot ID']));
+  const mass=dataOk&&lots.every(l=>nval(l['Finished Saleable Seed kg'])<=nval(l['Harvested Seed kg']));
+  const evidenceCount=plots.filter(p=>String(p['Evidence ID']||'').trim()).length;
+  const evidenceOk=dataOk&&evidenceCount===plots.length;
+  const remoteCoords=dataOk&&plots.filter(p=>remoteValue(p,['Latitude','latitude','GPS Latitude','GPS Lat'])!==''&&remoteValue(p,['Longitude','longitude','GPS Longitude','GPS Lon'])!=='').length===plots.length;
   const methodOk=!S.controls.methodVersion.toLowerCase().includes('prototype');
-  mrvData.textContent=dataOk?'Present':'Missing';
-  mrvEvidence.textContent=evidenceOk?'Covered':'Gap';
-  mrvMethod.textContent=methodOk?'Controlled':'Prototype';
+  const factorOk=!S.controls.factorVersion.toLowerCase().includes('prototype');
+  const calcOk=!!S.calc;
   const checks=[
-    ['Dataset loaded',dataOk],
-    ['Lot / plot linkage',S.plots.length>0&&S.plots.every(p=>S.lots.some(l=>l['Seed Lot ID']===p['Seed Lot ID']))],
-    ['Mass balance',S.lots.length>0&&S.lots.every(l=>nval(l['Finished Saleable Seed kg'])<=nval(l['Harvested Seed kg']))],
-    ['Evidence coverage',evidenceOk],
-    ['Methodology controlled',methodOk],
-    ['Factor registry controlled',!S.controls.factorVersion.toLowerCase().includes('prototype')],
-    ['Calculation run',!!S.calc]
+    ['Dataset loaded',dataOk,'Load both lot and plot records.'],
+    ['Required field integrity',requiredOk,'Resolve missing identifiers, area or crop duration.'],
+    ['Lot / plot linkage',linked,'Every plot should link to a known seed lot.'],
+    ['Mass balance',mass,'Review lots where finished seed exceeds harvested seed.'],
+    ['Evidence coverage',evidenceOk,'Every material plot claim needs an evidence reference.'],
+    ['Remote corroboration inputs',remoteCoords,'Production connector should supply coordinates before independent spatial corroboration.'],
+    ['Methodology controlled',methodOk,'Replace prototype methodology with an approved controlled version.'],
+    ['Factor registry controlled',factorOk,'Replace prototype factors with a controlled registry version.'],
+    ['Calculation run',calcOk,'Create a versioned calculation run after validation.']
   ];
-  const passed=checks.filter(x=>x[1]).length;
-  mrvOverall.textContent=passed===checks.length?'Review-ready':passed>=5?'Conditional':'Not ready';
-  mrvChecklist='<table><tr><th>Readiness control</th><th>Status</th></tr>'+checks.map(x=>'<tr><td>'+x[0]+'</td><td>'+(x[1]?'<span class="pill">Pass</span>':'<span class="pill warn">Review</span>')+'</td></tr>').join('')+'</table>';
+  const passed=checks.filter(x=>x[1]).length, score=Math.round(passed/checks.length*100);
+  const reviewReady=dataOk&&requiredOk&&linked&&mass&&evidenceOk&&calcOk;
+  const status=reviewReady&&methodOk&&factorOk?'Review-ready':reviewReady?'Conditional':'Not ready';
+  mrvScore.textContent=score+'%'; mrvOverall.textContent=status;
+  mrvOverall.className='pill '+(status==='Review-ready'?'':'warn');
+  mrvData.textContent=dataOk?(requiredOk?'Pass':'Review'):'Missing';
+  mrvEvidence.textContent=evidenceCount+'/'+plots.length;
+  mrvMethod.textContent=methodOk&&factorOk?'Controlled':'Prototype';
+  mrvCalc.textContent=calcOk?(S.calc.runId||'Run created'):'Pending';
+  mrvChecklist='<table><tr><th>Readiness control</th><th>Status</th><th>Next action</th></tr>'+checks.map(x=>'<tr><td>'+esc(x[0])+'</td><td>'+(x[1]?'<span class="pill">Pass</span>':'<span class="pill warn">Review</span>')+'</td><td class="muted">'+esc(x[2])+'</td></tr>').join('')+'</table>';
+  const exceptions=checks.filter(x=>!x[1]);
+  mrvExceptions.innerHTML=exceptions.length?'<ul style="margin:0;padding-left:20px">'+exceptions.map(x=>'<li style="margin:8px 0"><b>'+esc(x[0])+'</b><br><span class="muted">'+esc(x[2])+'</span></li>').join('')+'</ul>':'<div class="notice"><b>No structural exceptions detected.</b><br><span class="muted">Continue to assurance review; external verification remains separate.</span></div>';
+  mrvBundle.textContent=evidenceOk?'Ready for assembly':'Pending evidence';
+  mrvBundle.className='pill '+(evidenceOk?'':'warn');
+  mrvLineage.textContent=calcOk?'Run '+(S.calc.runId||'created'):'Pending calculation';
+  mrvLineage.className='pill '+(calcOk?'':'warn');
+  mrvStatement.textContent=status==='Review-ready'?'Internal review-ready':status;
+  mrvStatement.className='pill '+(status==='Review-ready'?'':'warn');
 }
 function renderIntelligence(){
-  if(!S.calc){hotCH4.textContent='—';hotN2O.textContent='—';hotOther.textContent='—';return}
-  const total=S.calc.total||1;
-  hotCH4.textContent=(S.calc.ch4co2e/total*100).toFixed(1)+'%';
-  hotN2O.textContent=(S.calc.n2o/total*100).toFixed(1)+'%';
-  hotOther.textContent=((S.calc.energy+S.calc.post)/total*100).toFixed(1)+'%';
+  const k=document.getElementById('liExecutiveKpis'), conc=document.getElementById('liConcentration'), sig=document.getElementById('liSignals'), cov=document.getElementById('liCoverage'), rev=document.getElementById('liReviewTable');
+  if(!k||!conc||!sig||!cov||!rev)return;
+  const rows=typeof plotEmissionRows==='function'?plotEmissionRows():[];
+  if(!rows.length){
+    k.innerHTML='<div class="li-kpi"><div class="label">Dataset</div><div class="value">—</div><div class="sub">Load enterprise data</div></div>'.repeat(4);
+    conc.innerHTML='<p class="muted">Load a dataset to populate leadership intelligence.</p>';sig.innerHTML='<p class="muted">No signals yet.</p>';cov.innerHTML='';rev.innerHTML='';return;
+  }
+  const totalKg=rows.reduce((a,r)=>a+r.totalKg,0), area=rows.reduce((a,r)=>a+r.area,0), finished=rows.reduce((a,r)=>a+r.finished,0);
+  const evidence=rows.filter(r=>r.evidence).length, coords=rows.filter(r=>r.gps).length, lots=new Set(rows.map(r=>r.lot)).size;
+  const intensity=finished?totalKg/(finished*1000):0;
+  k.innerHTML=[
+    ['Portfolio footprint',(totalKg/1000).toFixed(2)+' tCO₂e',rows.length+' plots assessed'],
+    ['Finished seed',(finished/1000).toFixed(2)+' t',area.toFixed(1)+' ha covered'],
+    ['Carbon intensity',intensity.toFixed(4)+' kg/kg','calculated from current run'],
+    ['Evidence coverage',(evidence/rows.length*100).toFixed(0)+'%',evidence+' of '+rows.length+' plots linked']
+  ].map(x=>'<div class="li-kpi"><div class="label">'+x[0]+'</div><div class="value">'+x[1]+'</div><div class="sub">'+x[2]+'</div></div>').join('');
+  const group=document.getElementById('liGroup')?.value||'state', metric=document.getElementById('liMetric2')?.value||'total';
+  const m={}; rows.forEach(r=>{const key=r[group]||'Unspecified'; if(!m[key])m[key]={name:key,totalKg:0,finished:0,area:0,plots:0,evidence:0};m[key].totalKg+=r.totalKg;m[key].finished+=r.finished;m[key].area+=r.area;m[key].plots++;if(r.evidence)m[key].evidence++;});
+  const data=Object.values(m).map(x=>({...x,totalT:x.totalKg/1000,intensity:x.finished?x.totalKg/(x.finished*1000):0,areaIntensity:x.area?x.totalKg/x.area:0,evidencePct:x.plots?x.evidence/x.plots*100:0}));
+  const val=x=>metric==='intensity'?x.intensity:metric==='area'?x.areaIntensity:x.totalT;data.sort((a,b)=>val(b)-val(a));const top=data.slice(0,8),max=Math.max(...top.map(val),0);const unit=metric==='intensity'?'kg CO₂e/kg':metric==='area'?'kg CO₂e/ha':'tCO₂e';
+  conc.innerHTML=top.map(x=>'<div class="li-bar"><div><b>'+liEscape(x.name)+'</b><br><span class="muted">'+x.plots+' plot(s) · '+x.evidencePct.toFixed(0)+'% evidence</span></div><div class="li-track"><div class="li-fill" style="width:'+(max?val(x)/max*100:0).toFixed(1)+'%"></div></div><div style="text-align:right"><b>'+val(x).toFixed(metric==='total'?2:4)+'</b><br><span class="muted">'+unit+'</span></div></div>').join('')||'<p class="muted">No grouped records available.</p>';
+  const missingEvidence=rows.filter(r=>!r.evidence), missingGPS=rows.filter(r=>!r.gps), badArea=rows.filter(r=>!(r.area>0)), badDays=rows.filter(r=>!(r.days>0));
+  const signals=[];
+  if(missingEvidence.length)signals.push(['Evidence linkage gap',missingEvidence.length+' plot(s) lack an evidence link','review','Review before assurance']);
+  if(missingGPS.length)signals.push(['Spatial corroboration gap',missingGPS.length+' plot(s) have no GPS/spatial input','review','Remote Evidence required']);
+  if(badArea.length||badDays.length)signals.push(['Data quality issue',(badArea.length+badDays.length)+' plot-level field issue(s)','review','Resolve before calculation gate']);
+  if(!missingEvidence.length&&!missingGPS.length&&!badArea.length&&!badDays.length)signals.push(['Control coverage','No basic coverage gaps detected','info','Continue to assurance review']);
+  sig.innerHTML=signals.map(x=>'<div class="li-signal"><b>'+x[0]+'</b><div class="muted" style="margin-top:3px">'+x[1]+'</div><span class="li-tag '+x[2]+'">'+x[3]+'</span></div>').join('');
+  cov.innerHTML='<table class="li-table"><thead><tr><th>Control</th><th>Coverage</th><th>Interpretation</th></tr></thead><tbody>'+[
+    ['Evidence linkage',evidence/rows.length*100,'Plots with Evidence ID / linkage'],
+    ['Spatial input',coords/rows.length*100,'Plots with GPS/spatial input'],
+    ['Positive area',rows.filter(r=>r.area>0).length/rows.length*100,'Plots with positive area'],
+    ['Crop duration',rows.filter(r=>r.days>0).length/rows.length*100,'Plots with positive crop days']
+  ].map(x=>'<tr><td><b>'+x[0]+'</b></td><td>'+x[1].toFixed(0)+'%</td><td>'+x[2]+'</td></tr>').join('')+'</tbody></table>';
+  const priority=rows.filter(r=>!r.evidence||!r.gps||!(r.area>0)||!(r.days>0)).slice(0,100);
+  rev.innerHTML=priority.length?'<table class="li-table"><thead><tr><th>Plot</th><th>State</th><th>District</th><th>Issue</th><th>Suggested next control</th></tr></thead><tbody>'+priority.map(r=>{let issues=[];if(!r.evidence)issues.push('Evidence link');if(!r.gps)issues.push('No GPS');if(!(r.area>0))issues.push('Area');if(!(r.days>0))issues.push('Crop days');return '<tr><td><b>'+liEscape(r.plot)+'</b></td><td>'+liEscape(r.state)+'</td><td>'+liEscape(r.district)+'</td><td>'+issues.join(', ')+'</td><td>Resolve / corroborate before assurance</td></tr>'}).join('')+'</tbody></table>':'<p class="muted">No priority review items from the current control set.</p>';
 }
 function runScenario(){
   if(!S.calc){alert('Run the baseline calculation first.');return}
@@ -849,6 +1597,25 @@ function runScenario(){
   const delta=scenario-base.total;
   const pct=base.total?delta/base.total*100:0;
   scenarioOutput.innerHTML='<div class="card"><b>Illustrative scenario total:</b> '+scenario.toFixed(1)+' kg CO₂e<br><b>Change vs baseline:</b> '+delta.toFixed(1)+' kg CO₂e ('+pct.toFixed(1)+'%)</div>';
+}
+
+function saveMethodologyProfile(){
+  S.methodology={jurisdiction:mpJurisdiction.value,framework:mpFramework.value,methodology:mpMethod.value,factors:mpFactors.value,gwp:mpGWP.value,assurance:mpAssurance.value,period:mpPeriod.value,savedAt:new Date().toISOString()};
+  localStorage.setItem('anvoraMethodologyProfile',JSON.stringify(S.methodology));
+  renderMethodologySummary();
+  methodologyStatus.textContent='Methodology profile saved for this browser. New calculation runs should retain this profile.';
+}
+function loadMethodologyProfile(){
+  try{const x=JSON.parse(localStorage.getItem('anvoraMethodologyProfile')||'null');if(x)S.methodology=x;}catch(e){}
+  if(S.methodology.jurisdiction){
+    mpJurisdiction.value=S.methodology.jurisdiction;mpFramework.value=S.methodology.framework;mpMethod.value=S.methodology.methodology;mpFactors.value=S.methodology.factors;mpGWP.value=S.methodology.gwp;mpAssurance.value=S.methodology.assurance;mpPeriod.value=S.methodology.period;
+    methodologyStatus.textContent='Saved profile loaded. Profile is active for this browser session.';
+  }
+  renderMethodologySummary();
+}
+function renderMethodologySummary(){
+  const x=S.methodology||{};
+  methodologySummary.innerHTML=x.jurisdiction?'<b>Active profile:</b> '+esc(x.jurisdiction)+' · '+esc(x.framework)+' · '+esc(x.methodology)+' · '+esc(x.factors)+' · '+esc(x.gwp)+' · '+esc(x.assurance)+' · '+esc(x.period):'Save a profile to create the project control record.';
 }
 
 function saveProject(){S.project={name:projectName.value,season:season.value,id:datasetId.value};renderHome();alert('Project details saved for this browser session.')}
@@ -1017,9 +1784,398 @@ function refreshAuditorScreen(){
 function refreshANVORAv21(){
   try{refreshLeadershipExplorer();refreshAuditorScreen();}catch(e){console.warn('ANVORA v2.1 dashboard refresh:',e)}
 }
-['liState','liDistrict','liHybrid','liWater','liView','liMetric'].forEach(id=>document.addEventListener('change',e=>{if(e.target&&e.target.id===id)refreshLeadershipExplorer()}));
+['liState','liDistrict','liHybrid','liWater','liView','liMetric','liGroup','liMetric2'].forEach(id=>document.addEventListener('change',e=>{if(e.target&&e.target.id===id)refreshLeadershipExplorer()}));
 </script>
 
 <script>window.addEventListener("load",()=>{refreshExecutiveViews();refreshANVORAv21();});</script>
+<script id="anvora-v30-ui-engine">
+(function(){
+  function by(id){return document.getElementById(id)}
+  const main=document.querySelector('main');
+  const footer=document.querySelector('footer');
+  // Promote persona views into real application pages.
+  ['auditor','farmer'].forEach(id=>{const e=by(id);if(e)e.classList.add('page')});
+  const explorer=by('leadershipExplorer'), leadership=by('leadership');
+  if(explorer && leadership && explorer.parentElement!==leadership) leadership.insertBefore(explorer,leadership.firstChild);
+  if(leadership) leadership.classList.add('page');
+  // Move leadership views into the application content area.
+  [leadership].forEach(e=>{if(e && e.parentElement!==main) main.appendChild(e)});
+  // Remove legacy long-page router blocks from the active application surface.
+  ['use-case-router','corporate-banner'].forEach(id=>{const e=by(id);if(e)e.style.display='none'});
+  // Rebuild navigation as a compact professional sidebar.
+  const nav=document.querySelector('nav');
+  if(nav){
+    nav.innerHTML=`
+      <div class="wrap nav persona-nav">
+        <button class="persona" onclick="openPersona('home')">Overview</button>
+        <button class="persona" onclick="openPersona('workspace')">Corporate / Enterprise</button>
+        <button class="persona" onclick="openPersona('auditor')">Auditor / Verifier</button>
+        <button class="persona" onclick="openPersona('leadership')">Leadership MIS</button>
+        <button class="persona" onclick="openPersona('farmer')">Farmer Quick Start</button>
+      </div>
+      <div class="wrap nav secondary-nav">
+        <button data-page="home">Dashboard</button>
+        <button data-page="workspace">Data</button>
+        <button data-page="methodology">Methodology &amp; Disclosure</button>
+        <button data-page="remoteEvidence">Remote Evidence</button>
+        <button data-page="validation">Validation</button>
+        <button data-page="calculation">Calculation</button>
+        <button data-page="evidence">Evidence Ledger</button>
+        <button data-page="mrv">MRV Readiness</button>
+        <button data-page="intelligence">Intelligence</button>
+        <button data-page="architecture">Data Architecture</button><button data-page="connectors">Remote Connectors</button>
+        <button data-page="passport">Climate Passport</button>
+      </div>`;
+    nav.querySelectorAll('.secondary-nav button').forEach(b=>b.addEventListener('click',()=>window.showPage(b.dataset.page)));
+  }
+  // Replace the old persona router with page-based navigation.
+  window.openPersona=function(id){
+    const map={home:'home',workspace:'workspace',auditor:'auditor',leadership:'leadership',farmer:'farmer'};
+    window.showPage(map[id]||id);
+  };
+  // The original showPage is already defined in the main engine. Wrap it to keep persona pages and refresh views coherent.
+  const originalShow=window.showPage;
+  window.showPage=function(id){
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    const target=by(id); if(!target)return;
+    target.classList.add('active');
+    document.querySelectorAll('.secondary-nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===id));
+    try{
+      if(id==='validation' && typeof renderValidation==='function') renderValidation();
+      if(id==='remoteEvidence' && typeof renderRemoteEvidence==='function') renderRemoteEvidence();
+      if(id==='workspace' && typeof renderTables==='function') renderTables();
+      if(id==='passport' && typeof renderPassport==='function') renderPassport();
+      if(id==='methodology' && typeof renderMethodology==='function') renderMethodology();
+      if(id==='evidence' && typeof renderEvidence==='function') renderEvidence();
+      if(id==='uncertainty' && typeof renderUncertainty==='function') renderUncertainty();
+      if(id==='mrv' && typeof renderMRV==='function') renderMRV();
+      if(id==='intelligence' && typeof renderIntelligence==='function') renderIntelligence();
+      if(id==='architecture' && typeof runArchitectureReadiness==='function') runArchitectureReadiness();
+      if(id==='connectors' && typeof runConnectorReadiness==='function') runConnectorReadiness();
+      if(id==='auditor' && typeof refreshAuditorScreen==='function') refreshAuditorScreen();
+      if(id==='leadership' && typeof refreshLeadershipExplorer==='function') refreshLeadershipExplorer();
+      if(typeof refreshExecutiveViews==='function') refreshExecutiveViews();
+    }catch(e){console.warn('ANVORA page refresh',e)}
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+  // Dashboard is the default landing screen.
+  window.addEventListener('load',()=>{
+    setTimeout(()=>window.showPage('home'),20);
+  });
+})();
+</script><script id="anvora-v38-architecture">
+function runArchitectureReadiness(){
+  const hasData=Array.isArray(S?.plots)&&S.plots.length>0;
+  const el=id=>document.getElementById(id);
+  if(el('archModel')) el('archModel').textContent=hasData?'Ready':'Defined';
+  if(el('archLineage')) el('archLineage').textContent=(S?.calc?'Active':'Defined');
+  if(el('archIntegration')) el('archIntegration').textContent='Prototype';
+  if(el('archSources')) el('archSources').textContent='4';
+}
+</script>
+
+<script id="anvora-v40-connectors">
+const CDSE_STAC='https://stac.dataspace.copernicus.eu/v1';
+function stacPayload(){
+  const collection=(document.getElementById('liveCollection')||{}).value||'sentinel-1-grd';
+  const west=parseFloat((document.getElementById('liveWest')||{}).value||79);
+  const south=parseFloat((document.getElementById('liveSouth')||{}).value||17);
+  const east=parseFloat((document.getElementById('liveEast')||{}).value||79.1);
+  const north=parseFloat((document.getElementById('liveNorth')||{}).value||17.1);
+  const from=(document.getElementById('liveFrom')||{}).value||'2026-06-01';
+  const to=(document.getElementById('liveTo')||{}).value||'2026-09-19';
+  const limit=Math.min(10,Math.max(1,parseInt((document.getElementById('liveLimit')||{}).value||3,10)));
+  return {collections:[collection],bbox:[west,south,east,north],datetime:from+'T00:00:00Z/'+to+'T23:59:59Z',limit};
+}
+function renderStacPreview(){
+  const payload=stacPayload();
+  const pre=document.getElementById('stacPreview');
+  if(pre) pre.textContent=JSON.stringify({endpoint:CDSE_STAC+'/search',method:'POST',body:payload},null,2);
+  return payload;
+}
+async function runLiveCatalogueProbe(){
+  const box=document.getElementById('liveProbeStatus');
+  const payload=renderStacPreview();
+  if(box) box.innerHTML='<div class="control-row"><div><b>Testing Copernicus STAC collection</b><small>'+payload.collections[0]+' · live endpoint</small></div><span class="pill">Testing…</span></div>';
+  try{
+    const r=await fetch(CDSE_STAC+'/collections/'+encodeURIComponent(payload.collections[0]),{headers:{'Accept':'application/json'}});
+    const j=await r.json();
+    const title=j.title||payload.collections[0];
+    if(box) box.innerHTML='<div class="control-row"><div><b>Live catalogue reachable</b><small>'+esc(title)+' · collection metadata received · STAC '+esc(j.stac_version||'1.x')+'</small></div><span class="pill">Reachable</span></div><div class="control-row"><div><b>Next step: authenticated search</b><small>The STAC search request is ready, but production catalogue search should use an approved OAuth client and backend credential boundary.</small></div><span class="pill">Auth required</span></div>';
+    const state=document.getElementById('connState'); if(state) state.textContent='Catalogue reachable';
+    const ev=document.getElementById('connEvidence'); if(ev) ev.textContent='Metadata ready';
+  }catch(err){
+    if(box) box.innerHTML='<div class="control-row"><div><b>Browser probe could not complete</b><small>This may be caused by local file CORS/security rules. The official endpoint and request contract remain configured below.</small></div><span class="pill">Browser blocked</span></div><div class="control-row"><div><b>Production route</b><small>Run the same request from ANVORA backend after OAuth setup; never embed client secrets in the frontend.</small></div><span class="pill">Backend</span></div>';
+    const state=document.getElementById('connState'); if(state) state.textContent='Backend required';
+  }
+}
+function copyStacRequest(){
+  const payload=renderStacPreview();
+  const text=JSON.stringify({endpoint:CDSE_STAC+'/search',method:'POST',body:payload},null,2);
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(()=>alert('STAC request copied.')).catch(()=>alert('Copy blocked by browser; use the request shown below.'));}
+  else alert('Copy unavailable; use the request shown below.');
+}
+function runConnectorReadiness(){
+  const el=id=>document.getElementById(id);
+  if(el('connSources')) el('connSources').textContent='3';
+  if(el('connState')) el('connState').textContent='Catalogue POC';
+  if(el('connEvidence')) el('connEvidence').textContent='Defined';
+  if(el('connProv')) el('connProv').textContent='Defined';
+  const checks=[
+    ['Plot geometry contract','GeoJSON boundary + geometry version defined','Ready'],
+    ['Copernicus STAC catalogue','Live collection metadata endpoint identified','Ready'],
+    ['Sentinel-1 search','STAC request contract prepared','Auth required'],
+    ['Sentinel-2 search','STAC request contract prepared','Auth required'],
+    ['Weather adapter','Provider-neutral interface defined','Planned'],
+    ['Observation schema','Source, acquisition, metric and quality fields defined','Ready'],
+    ['Evidence provenance','Algorithm/version/timestamp lineage defined','Ready'],
+    ['Backend secret boundary','Provider credentials kept outside browser','Required'],
+    ['Live image processing','Authenticated process job + reproducible algorithm','Next']
+  ];
+  const box=el('connChecklist');
+  if(box) box.innerHTML=checks.map((x,i)=>'<div class="control-row"><div><b>'+String(i+1).padStart(2,'0')+' · '+x[0]+'</b><small>'+x[1]+'</small></div><span class="pill">'+x[2]+'</span></div>').join('');
+}
+</script>
+
+  <div class="card" style="margin-top:18px">
+    <div class="section-head"><div><div class="kicker">V4.4 · SENTINEL-1 PROCESSING POC</div><h2>Convert a selected acquisition into measurable SAR evidence</h2></div><span class="mini-status">AUTHENTICATED PROCESSING BRIDGE</span></div>
+    <div class="notice"><b>Purpose:</b> generate the production processing contract for Sentinel-1 GRD statistics over the selected plot AOI. The target evidence is <b>measured backscatter statistics</b> (VV/VH), not a direct claim about farmer practice. Production execution should run through an authenticated ANVORA backend; client secrets must not be embedded in GitHub Pages.</div>
+    <div class="grid g4" style="margin-top:14px">
+      <div><label>Processing endpoint</label><input id="s1Endpoint" value="https://anvora-eo-connector.raja-vadlamani.workers.dev/api/sentinel1"><small style="display:block;margin-top:6px;color:#6b7b78">ANVORA v4.5.6 Cloudflare Worker · /api/sentinel1 · credentials remain server-side</small></div>
+      <div><label>Backscatter coefficient</label><select id="s1Coeff"><option value="GAMMA0_TERRAIN" selected>GAMMA0_TERRAIN</option><option value="GAMMA0_ELLIPSOID">GAMMA0_ELLIPSOID</option><option value="SIGMA0_ELLIPSOID">SIGMA0_ELLIPSOID</option></select></div>
+      <div><label>Resolution (m)</label><input id="s1Resolution" type="number" min="10" max="100" step="1" value="10"></div>
+      <div><label>Aggregation</label><select id="s1Agg"><option value="P1D" selected>1 day</option><option value="P5D">5 days</option><option value="P10D">10 days</option></select></div>
+    </div>
+    <div class="grid g4" style="margin-top:12px">
+      <div><label>From</label><input id="s1From" type="datetime-local" value="2026-09-15T00:38"></div>
+      <div><label>To</label><input id="s1To" type="datetime-local" value="2026-09-15T00:40"></div>
+      <div><label>Orbit direction</label><select id="s1Orbit"><option value="">Any</option><option value="ASCENDING">Ascending</option><option value="DESCENDING">Descending</option></select></div>
+      <div><label>Polarization</label><select id="s1Pol"><option value="DV" selected>DV · VV + VH</option><option value="VV">VV only</option><option value="VH">VH only</option></select></div>
+    </div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="mini-card"><b>Processing chain</b><p>STAC acquisition → authenticated Sentinel Hub Statistical API → Sentinel-1 GRD → orthorectification → selected backscatter coefficient → VV/VH statistics → dataMask QA → Evidence Ledger.</p></div>
+      <div class="mini-card"><b>Scientific boundary</b><p>Backscatter is an observation. ANVORA should infer wet/dry or drainage events only after a separately validated temporal algorithm, calibration dataset and quality gate are applied.</p></div>
+    </div>
+    <div class="hero-actions" style="margin-top:14px"><button type="button" class="primary" onclick="buildS1StatsRequest()">Build processing request</button><button type="button" onclick="loadSelectedAcqIntoS1()">Use selected acquisition</button><button type="button" onclick="runS1Backend(event)">Run authenticated backend</button><button type="button" onclick="checkS1Connector()">Check connector</button><button type="button" onclick="simulateS1Stats()">Run sandbox simulation</button></div>
+    <div id="s1Status" class="control-list" style="margin-top:14px"><div class="control-row"><div><b>Processing bridge ready</b><small>Select an acquisition above, then build the Statistical API request.</small></div><span class="pill">Ready</span></div></div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="card" style="box-shadow:none;margin:0"><div class="section-head"><div><div class="kicker">REQUEST CONTRACT</div><h3>Sentinel Hub Statistical API payload</h3></div></div><pre id="s1Request" style="white-space:pre-wrap;background:#f6f8f6;padding:14px;border-radius:12px;border:1px solid #dce5df;overflow:auto;max-height:420px">Build the processing request to generate the authenticated payload.</pre></div>
+      <div class="card" style="box-shadow:none;margin:0"><div class="section-head"><div><div class="kicker">OBSERVATION OUTPUT</div><h3>Measured SAR statistics</h3></div></div><div id="s1Output" class="control-list"><div class="control-row"><div><b>No processing result yet</b><small>Sandbox output will be clearly labelled as simulated.</small></div><span class="pill">Waiting</span></div></div></div>
+    </div>
+    <div class="notice" style="margin-top:14px"><b>Provider boundary:</b> Copernicus Data Space requires OAuth2 for Sentinel Hub API requests. The production ANVORA architecture should keep client credentials server-side and return only the processed observation plus provenance to the browser.</div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <div class="section-head"><div><div class="kicker">V4.4 · EVIDENCE CONTRACT</div><h2>From SAR measurement to auditable evidence</h2></div><span class="mini-status">NO PRACTICE CLAIM YET</span></div>
+    <div class="grid g4">
+      <div class="mini-card"><b>Measured</b><p>VV/VH mean, standard deviation, sample count and interval.</p></div>
+      <div class="mini-card"><b>QA</b><p>dataMask, no-data count, spatial/temporal match and processing flags.</p></div>
+      <div class="mini-card"><b>Provenance</b><p>Acquisition ID, provider endpoint, processing contract, algorithm version and timestamp.</p></div>
+      <div class="mini-card"><b>Inference gate</b><p>Wet/dry, AWD or drainage inference remains locked until a validated temporal model is connected.</p></div>
+    </div>
+    <div class="notice" style="margin-top:14px"><b>Official provider references:</b> <a href="https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Statistical.html" target="_blank" rel="noopener">Statistical API</a> · <a href="https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S1GRD.html" target="_blank" rel="noopener">Sentinel-1 GRD</a> · <a href="https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Overview/Authentication.html" target="_blank" rel="noopener">Sentinel Hub Authentication</a></div>
+  </div>
+
+<script id="anvora-v41-live-acquisition">
+function acqPayload(){
+  const g=id=>document.getElementById(id);
+  const collection=(g('liveCollection')||{}).value||'sentinel-1-grd';
+  const west=parseFloat(g('acqWest').value), south=parseFloat(g('acqSouth').value), east=parseFloat(g('acqEast').value), north=parseFloat(g('acqNorth').value);
+  const from=g('acqFrom').value, to=g('acqTo').value;
+  const limit=Math.min(20,Math.max(1,parseInt(g('acqLimit').value||5,10)));
+  return {plotId:g('acqPlotId').value||'UNASSIGNED',collection,bbox:[west,south,east,north],datetime:from+'T00:00:00Z/'+to+'T23:59:59Z',limit};
+}
+function renderAcqRequest(){
+  const p=acqPayload();
+  const req={endpoint:CDSE_STAC+'/search',method:'POST',body:{collections:[p.collection],bbox:p.bbox,datetime:p.datetime,limit:p.limit}};
+  const pre=document.getElementById('acqRequestPreview'); if(pre) pre.textContent=JSON.stringify(req,null,2);
+  return req;
+}
+function useCatalogueDefaults(){
+  const ids=['acqWest','acqSouth','acqEast','acqNorth','acqFrom','acqTo','acqLimit'];
+  const vals=['79.00','17.00','79.10','17.10','2026-06-01','2026-09-19','5']; ids.forEach((id,i)=>{const e=document.getElementById(id); if(e)e.value=vals[i];}); renderAcqRequest();
+}
+function fmtDate(v){try{return new Date(v).toLocaleString(undefined,{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'UTC'})+' UTC'}catch(e){return v||'—'}}
+function acquisitionRows(features){
+  if(!features.length) return '<div class="notice"><b>No acquisitions returned.</b> Broaden the date window or spatial extent and try again.</div>';
+  let h='<div class="table-wrap"><table class="data-table"><thead><tr><th>Select</th><th>Acquisition</th><th>Date</th><th>Collection</th><th>Cloud / quality</th><th>Provider link</th></tr></thead><tbody>';
+  features.forEach((f,i)=>{const pr=f.properties||{}; const cloud=pr['eo:cloud_cover']; const href=(f.links||[]).find(x=>x.rel==='self')?.href||''; const cols=Array.isArray(f.collection)?f.collection.join(', '):(f.collection||'—'); h+='<tr><td><input type="radio" name="eoAcqSelect" value="'+i+'" '+(i===0?'checked':'')+' onchange="previewEOSelection('+i+')"></td><td><b>'+esc(f.id||('Item '+(i+1)))+'</b></td><td>'+esc(fmtDate(pr.datetime||f.datetime))+'</td><td>'+esc(cols)+'</td><td>'+esc(cloud==null?'Not reported':String(cloud)+'%')+'</td><td>'+(href?'<a href="'+esc(href)+'" target="_blank" rel="noopener">STAC item</a>':'—')+'</td></tr>';});
+  return h+'</tbody></table></div><div class="notice" style="margin-top:10px"><b>Next:</b> select an acquisition and create an observation record. The record remains metadata-only until authenticated imagery processing is connected.</div>';
+}
+async function discoverLiveAcquisitions(){
+  const status=document.getElementById('acqStatus'), results=document.getElementById('acqResults'); const req=renderAcqRequest();
+  if(status) status.innerHTML='<div class="control-row"><div><b>Searching live catalogue</b><small>'+esc(req.body.collections[0])+' · '+esc(req.body.datetime)+'</small></div><span class="pill">Searching…</span></div>';
+  if(results) results.innerHTML='';
+  try{
+    const r=await fetch(req.endpoint,{method:'POST',headers:{'Accept':'application/geo+json, application/json','Content-Type':'application/json'},body:JSON.stringify(req.body)});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j=await r.json(); const features=Array.isArray(j.features)?j.features:[];
+    if(status) status.innerHTML='<div class="control-row"><div><b>Live acquisitions discovered</b><small>'+features.length+' catalogue item(s) returned for '+esc(document.getElementById('acqPlotId').value||'plot')+'.</small></div><span class="pill">Live</span></div><div class="control-row"><div><b>Evidence boundary</b><small>These are catalogue observations only. ANVORA has not yet processed imagery or assessed the farm claim.</small></div><span class="pill">Metadata</span></div>';
+    if(results) results.innerHTML=acquisitionRows(features);
+    window.ANVORA_LIVE_ACQUISITIONS={plotId:document.getElementById('acqPlotId').value,request:req,response:{context:j.context||{},count:features.length,items:features.map(f=>({id:f.id,datetime:f.properties?.datetime,collection:f.collection,links:f.links,bbox:f.bbox||null,self:(f.links||[]).find(x=>x.rel==='self')?.href||null}))}};
+    setTimeout(()=>previewEOSelection(0),0);
+  }catch(err){
+    if(status) status.innerHTML='<div class="control-row"><div><b>Live acquisition search blocked or unavailable</b><small>'+esc(err.message||String(err))+' · local file/browser security or provider authentication may be required.</small></div><span class="pill">Backend required</span></div><div class="control-row"><div><b>Request contract preserved</b><small>Run the same POST request from the ANVORA backend using the approved provider authentication boundary.</small></div><span class="pill">Ready</span></div>';
+  }
+}
+</script>
+
+<script id="anvora-v43-observation-engine">
+function selectedEOItem(){
+  const live=window.ANVORA_LIVE_ACQUISITIONS;
+  if(!live || !Array.isArray(live.items) || !live.items.length) return null;
+  const radios=[...document.querySelectorAll('input[name="eoAcqSelect"]')];
+  const idx=Math.max(0,radios.findIndex(r=>r.checked));
+  return live.items[idx]||live.items[0]||null;
+}
+function bboxIntersects(a,b){
+  if(!Array.isArray(a)||a.length<4||!Array.isArray(b)||b.length<4) return false;
+  return a[0]<=b[2] && a[2]>=b[0] && a[1]<=b[3] && a[3]>=b[1];
+}
+function previewEOSelection(idx){
+  const live=window.ANVORA_LIVE_ACQUISITIONS; if(!live||!live.items||!live.items[idx]) return;
+  const item=live.items[idx];
+  const id=document.getElementById('eoAcqId'); if(id) id.textContent=(item.id||'—').slice(0,24)+(item.id&&item.id.length>24?'…':'');
+  const rec=document.getElementById('eoRecord'); if(rec) rec.innerHTML='<div class="control-row"><div><b>Selected acquisition</b><small>'+esc(item.id||'—')+'</small></div><span class="pill">Selected</span></div><div class="control-row"><div><b>Acquisition time</b><small>'+esc(fmtDate(item.datetime))+'</small></div><span class="pill">Catalogue</span></div>';
+}
+function createEOObservation(){
+  const item=selectedEOItem();
+  if(!item){ alert('Run live acquisition discovery first.'); return; }
+  const p=acqPayload();
+  const bbox=item.bbox||null;
+  const spatial=bbox?bboxIntersects(bbox,p.bbox):null;
+  const dt=item.datetime||null;
+  const temporal=!!dt;
+  const now=new Date().toISOString();
+  const observation={
+    observationId:'EO-'+Date.now().toString(36).toUpperCase(),
+    plotId:p.plotId,
+    source:'Copernicus Data Space',
+    mission:p.collection.includes('sentinel-1')?'Sentinel-1':'Sentinel-2',
+    productCollection:p.collection,
+    acquisitionId:item.id,
+    acquisitionDateTime:dt,
+    stacItemUrl:item.self||item.href||null,
+    requestedBbox:p.bbox,
+    catalogueBbox:bbox,
+    spatialMatch:spatial===null?'Not assessed':(spatial?'Consistent':'Review'),
+    temporalMatch:temporal?'Confirmed':'Not assessed',
+    practiceSignal:'Not assessed',
+    derivedMetrics:[],
+    processingStatus:'METADATA_ONLY',
+    algorithmVersion:'ANVORA-EO-META-0.1',
+    createdAt:now,
+    provenance:{catalogueEndpoint:CDSE_STAC+'/search',request:p,sourceRecord:'Live STAC acquisition metadata'},
+    assuranceNote:'Catalogue metadata confirms an acquisition context; it does not by itself prove wet/dry conditions, AWD events, irrigation practice or farmer action.'
+  };
+  window.ANVORA_EO_OBSERVATION=observation;
+  document.getElementById('eoAcqId').textContent=(item.id||'—').slice(0,24)+(item.id&&item.id.length>24?'…':'');
+  document.getElementById('eoSpatial').textContent=observation.spatialMatch;
+  document.getElementById('eoTemporal').textContent=observation.temporalMatch;
+  document.getElementById('eoPractice').textContent='Not assessed';
+  const rec=document.getElementById('eoRecord');
+  if(rec) rec.innerHTML=[['Observation ID',observation.observationId],['Plot',observation.plotId],['Acquisition',observation.acquisitionId],['Acquired',fmtDate(observation.acquisitionDateTime)],['Processing',observation.processingStatus],['Algorithm',observation.algorithmVersion]].map(x=>'<div class="control-row"><div><b>'+esc(x[0])+'</b><small>'+esc(x[1]||'—')+'</small></div><span class="pill">Recorded</span></div>').join('');
+  const q=document.getElementById('eoQuality');
+  if(q) q.innerHTML='<div class="control-row"><div><b>Spatial catalogue match</b><small>'+esc(observation.spatialMatch)+' · based on returned STAC footprint/bbox when available.</small></div><span class="pill">'+esc(observation.spatialMatch)+'</span></div><div class="control-row"><div><b>Practice inference</b><small>Wet/dry, AWD and drainage signals require authenticated imagery processing and validation.</small></div><span class="pill">Not assessed</span></div><div class="control-row"><div><b>Evidence class</b><small>Live acquisition metadata, not independent practice verification.</small></div><span class="pill">E3-ready</span></div>';
+  const pre=document.getElementById('eoJson'); if(pre) pre.textContent=JSON.stringify(observation,null,2);
+}
+function copyEOObservation(){
+  const o=window.ANVORA_EO_OBSERVATION; if(!o){alert('Create the observation record first.');return;}
+  const t=JSON.stringify(o,null,2); if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>alert('Observation JSON copied.')).catch(()=>alert('Copy blocked by browser; use the JSON shown below.'));} else alert('Copy unavailable; use the JSON shown below.');
+}
+</script>
+<script id="anvora-v44-sentinel1-processing">
+function isoLocalToUtc(v){return v?new Date(v).toISOString():null;}
+function s1Evalscript(){return `//VERSION=3
+function setup(){return {input:[{bands:["VV","VH","dataMask"]}],output:[{id:"backscatter",bands:2,sampleType:"FLOAT32"},{id:"dataMask",bands:1}]};}
+function evaluatePixel(samples){return {backscatter:[samples.VV,samples.VH],dataMask:[samples.dataMask]};}`;}
+function selectedAcqForS1(){const o=window.ANVORA_EO_OBSERVATION;if(o&&o.acquisitionId)return o;const item=selectedEOItem();if(!item)return null;return {plotId:acqPayload().plotId,acquisitionId:item.id,acquisitionDateTime:item.datetime,requestedBbox:acqPayload().bbox};}
+function loadSelectedAcqIntoS1(){const o=selectedAcqForS1();if(!o){alert('Select an acquisition in v4.3 first.');return;}const d=o.acquisitionDateTime?new Date(o.acquisitionDateTime):new Date(),before=new Date(d-60000),after=new Date(d.getTime()+60000);const fmt=x=>{const z=new Date(x),p=n=>String(n).padStart(2,'0');return z.getFullYear()+'-'+p(z.getMonth()+1)+'-'+p(z.getDate())+'T'+p(z.getHours())+':'+p(z.getMinutes());};document.getElementById('s1From').value=fmt(before);document.getElementById('s1To').value=fmt(after);document.getElementById('s1Status').innerHTML='<div class="control-row"><div><b>Selected acquisition loaded</b><small>'+esc(o.acquisitionId||'—')+' · '+esc(fmtDate(o.acquisitionDateTime))+'</small></div><span class="pill">Linked</span></div>';buildS1StatsRequest();}
+function s1StatsPayload(){const o=selectedAcqForS1(),bbox=o?.requestedBbox||acqPayload().bbox,from=isoLocalToUtc(document.getElementById('s1From').value),to=isoLocalToUtc(document.getElementById('s1To').value),coeff=document.getElementById('s1Coeff').value,res=Math.max(10,Number(document.getElementById('s1Resolution').value||10)),agg=document.getElementById('s1Agg').value,orbit=document.getElementById('s1Orbit').value,pol=document.getElementById('s1Pol').value,dataFilter={};if(orbit)dataFilter.orbitDirection=orbit;if(pol)dataFilter.polarization=pol;return {input:{bounds:{bbox,properties:{crs:'http://www.opengis.net/def/crs/EPSG/0/4326'}},data:[{type:'sentinel-1-grd',dataFilter,processing:{orthorectify:true,backCoeff:coeff}}]},aggregation:{timeRange:{from,to},aggregationInterval:{of:agg},evalscript:s1Evalscript(),resx:res,resy:res},calculations:{default:{statistics:{default:{percentiles:{k:[10,50,90]}}}}}};}
+function buildS1StatsRequest(){const p=s1StatsPayload(),out={endpoint:'https://sh.dataspace.copernicus.eu/statistics/v1',method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:p};document.getElementById('s1Request').textContent=JSON.stringify(out,null,2);document.getElementById('s1Status').innerHTML='<div class="control-row"><div><b>Processing request built</b><small>Statistical API contract generated for Sentinel-1 GRD VV/VH.</small></div><span class="pill">Ready</span></div><div class="control-row"><div><b>Execution boundary</b><small>Authentication must be handled by ANVORA backend or an explicitly configured OAuth client.</small></div><span class="pill">Protected</span></div>';window.ANVORA_S1_REQUEST=out;return out;}
+function fmtNum(v){return v==null?'—':Number(v).toFixed(5);}
+function renderS1Result(data,simulated){const box=document.getElementById('s1Output');if(!box)return;const intervals=Array.isArray(data?.data)?data.data:[];let rows=[];intervals.forEach((it,i)=>{const out=it.outputs||{},bands=out.backscatter?.bands||{},names=Object.keys(bands),parts=[];names.forEach(n=>{const st=bands[n]?.stats;if(st)parts.push(n+': mean '+fmtNum(st.mean)+' · sd '+fmtNum(st.stDev)+' · n '+fmtNum(st.sampleCount));});rows.push('<div class="control-row"><div><b>Interval '+(i+1)+'</b><small>'+esc(it.interval?.from||'')+' → '+esc(it.interval?.to||'')+' · '+esc(parts.join(' | ')||'Statistics returned')+'</small></div><span class="pill">'+(simulated?'Simulated':'Measured')+'</span></div>');});if(!rows.length)rows.push('<div class="control-row"><div><b>No statistics parsed</b><small>Inspect the raw response JSON or verify the backend contract.</small></div><span class="pill">Review</span></div>');box.innerHTML=rows.join('')+'<pre style="white-space:pre-wrap;background:#f6f8f6;padding:12px;border-radius:10px;border:1px solid #dce5df;overflow:auto;max-height:280px;margin-top:10px">'+esc(JSON.stringify(data,null,2))+'</pre>';window.ANVORA_S1_RESULT={simulated,data};}
+function simulateS1Stats(){
+  const req=buildS1StatsRequest();
+  const from=req.body.aggregation.timeRange.from;
+  const to=req.body.aggregation.timeRange.to;
+  const sim={status:'SIMULATED',note:'Synthetic demonstration only — not an observation of the selected field.',data:[]};
+  sim.data.push({interval:{from:from,to:to},outputs:{backscatter:{bands:{VV:{stats:{min:0.012,max:0.210,mean:0.06124,stDev:0.02131,sampleCount:1248,noDataCount:12}},VH:{stats:{min:0.002,max:0.092,mean:0.01871,stDev:0.00822,sampleCount:1248,noDataCount:12}}}}}});
+  renderS1Result(sim,true);
+  document.getElementById('s1Status').innerHTML='<div class="control-row"><div><b>Sandbox simulation completed</b><small>VV/VH values are synthetic and must not enter an evidence or calculation run.</small></div><span class="pill">Simulation</span></div>';
+}
+
+</script>
+
+
+<style id="anvora-v451-sidebar-fix">
+/* v4.5.1: collapsible desktop navigation so processing workspace is never obscured. */
+:root{--sidebar-collapsed:0px}
+body.sidebar-collapsed{--sidebar:0px}
+body.sidebar-collapsed nav{transform:translateX(-100%);box-shadow:none}
+body.sidebar-collapsed header{left:0}
+body.sidebar-collapsed main.wrap{margin-left:0}
+body.sidebar-collapsed footer{margin-left:0}
+.anvora-sidebar-toggle{position:fixed;left:calc(var(--sidebar) - 18px);top:96px;z-index:60;width:36px;height:36px;border:1px solid #cddbd5;border-radius:10px;background:#fff;color:#176b52;box-shadow:0 4px 14px rgba(18,52,42,.14);cursor:pointer;font-size:18px;font-weight:800;line-height:1}
+body.sidebar-collapsed .anvora-sidebar-toggle{left:14px}
+.anvora-sidebar-toggle:hover{background:#eaf5f0}
+@media(max-width:850px){.anvora-sidebar-toggle{display:none}}
+</style>
+<script id="anvora-v451-sidebar-engine">
+(function(){
+  function install(){
+    if(document.querySelector('.anvora-sidebar-toggle')) return;
+    const btn=document.createElement('button');
+    btn.className='anvora-sidebar-toggle';
+    btn.type='button';
+    btn.setAttribute('aria-label','Collapse ANVORA navigation');
+    btn.title='Collapse / expand navigation';
+    btn.textContent='‹';
+    btn.addEventListener('click',()=>{
+      const collapsed=document.body.classList.toggle('sidebar-collapsed');
+      btn.textContent=collapsed?'›':'‹';
+      btn.setAttribute('aria-label',collapsed?'Expand ANVORA navigation':'Collapse ANVORA navigation');
+    });
+    document.body.appendChild(btn);
+    // Keep the full workspace visible by default on the Remote Connectors page.
+    if(location.hash==='#connectors') document.body.classList.add('sidebar-collapsed'), btn.textContent='›';
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install); else install();
+})();
+</script>
+
+<style id="anvora-v452-poc-ui">
+/* v4.5.2: Remote Connectors is a full-width working canvas; other pages retain navigation. */
+body.poc-connectors-active{--sidebar:0px}
+body.poc-connectors-active nav{transform:translateX(-100%);box-shadow:none}
+body.poc-connectors-active header{left:0}
+body.poc-connectors-active main.wrap{margin-left:0}
+body.poc-connectors-active footer{margin-left:0}
+body.poc-connectors-active .anvora-sidebar-toggle{left:14px}
+</style>
+<script id="anvora-v452-poc-ui-engine">
+(function(){
+  function setPOC(on){
+    document.body.classList.toggle('poc-connectors-active', !!on);
+    const b=document.querySelector('.anvora-sidebar-toggle');
+    if(b){
+      b.textContent=on?'›':'‹';
+      b.setAttribute('aria-label',on?'Expand ANVORA navigation':'Collapse ANVORA navigation');
+    }
+  }
+  function wire(){
+    document.querySelectorAll('.secondary-nav button[data-page="connectors"]').forEach(b=>{
+      b.addEventListener('click',()=>setTimeout(()=>setPOC(true),0));
+    });
+    document.querySelectorAll('.secondary-nav button:not([data-page="connectors"])').forEach(b=>{
+      b.addEventListener('click',()=>setTimeout(()=>setPOC(false),0));
+    });
+    const active=document.querySelector('.secondary-nav button.active[data-page="connectors"]');
+    if(active) setPOC(true);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(wire,50));
+  else setTimeout(wire,50);
+})();
+</script>
+
 </body>
 </html>
