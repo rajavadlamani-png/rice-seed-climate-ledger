@@ -2022,18 +2022,19 @@ async function discoverLiveAcquisitions(){
 <script id="anvora-v43-observation-engine">
 function selectedEOItem(){
   const live=window.ANVORA_LIVE_ACQUISITIONS;
-  if(!live || !Array.isArray(live.items) || !live.items.length) return null;
+  const items=live?.response?.items;
+  if(!live || !Array.isArray(items) || !items.length) return null;
   const radios=[...document.querySelectorAll('input[name="eoAcqSelect"]')];
   const idx=Math.max(0,radios.findIndex(r=>r.checked));
-  return live.items[idx]||live.items[0]||null;
+  return items[idx]||items[0]||null;
 }
 function bboxIntersects(a,b){
   if(!Array.isArray(a)||a.length<4||!Array.isArray(b)||b.length<4) return false;
   return a[0]<=b[2] && a[2]>=b[0] && a[1]<=b[3] && a[3]>=b[1];
 }
 function previewEOSelection(idx){
-  const live=window.ANVORA_LIVE_ACQUISITIONS; if(!live||!live.items||!live.items[idx]) return;
-  const item=live.items[idx];
+  const live=window.ANVORA_LIVE_ACQUISITIONS; const items=live?.response?.items; if(!live||!items||!items[idx]) return;
+  const item=items[idx];
   const id=document.getElementById('eoAcqId'); if(id) id.textContent=(item.id||'—').slice(0,24)+(item.id&&item.id.length>24?'…':'');
   const rec=document.getElementById('eoRecord'); if(rec) rec.innerHTML='<div class="control-row"><div><b>Selected acquisition</b><small>'+esc(item.id||'—')+'</small></div><span class="pill">Selected</span></div><div class="control-row"><div><b>Acquisition time</b><small>'+esc(fmtDate(item.datetime))+'</small></div><span class="pill">Catalogue</span></div>';
 }
