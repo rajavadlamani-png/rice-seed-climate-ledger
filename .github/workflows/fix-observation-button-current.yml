@@ -1,0 +1,52 @@
+name: Fix observation button from current main
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch current index
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          tag = '<script src="anvora-observation-button-fix.js"></script>'
+          if tag not in s:
+              marker = '</body>'
+              if marker not in s:
+                  marker = '</html>'
+              if marker not in s:
+                  raise SystemExit('No closing body/html marker found')
+              s = s.replace(marker, tag + '\n' + marker, 1)
+              p.write_text(s, encoding='utf-8')
+              print('Observation button fix linked into current index.html')
+          else:
+              print('Observation button fix already linked')
+          PY
+
+      - name: Commit current-main patch
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if git diff --cached --quiet; then
+            echo 'No change required'
+            exit 0
+          fi
+          git commit -m 'Fix observation button on current main'
+          git push origin HEAD:main
