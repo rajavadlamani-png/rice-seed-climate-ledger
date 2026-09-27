@@ -10,51 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Apply existing ANVORA patch
+      - name: Apply patch
         run: python anvora_patch.py
-      - name: Ensure Sentinel-1 backend runner exists
-        shell: python
-        run: |
-          from pathlib import Path
-          p = Path('index.html')
-          s = p.read_text(encoding='utf-8')
-          marker = 'anvora-v456-s1-backend-runner'
-          if marker not in s:
-              js = r'''<script id="anvora-v456-s1-backend-runner">
-async function runS1Backend(){
-  const req = window.ANVORA_S1_REQUEST || (typeof buildS1StatsRequest==='function' ? buildS1StatsRequest() : null);
-  const endpoint = (document.getElementById('s1Endpoint')||{}).value || 'https://anvora-eo-connector.raja-vadlamani.workers.dev/api/sentinel1';
-  const observation = window.ANVORA_EO_OBSERVATION || (typeof selectedAcqForS1==='function' ? selectedAcqForS1() : null);
-  const status = document.getElementById('s1Status');
-  if(!req || !req.body) throw new Error('Sentinel-1 processing request is not ready.');
-  if(status) status.innerHTML='<div class="control-row"><div><b>Running Sentinel-1 processing</b><small>Sending the selected acquisition to the ANVORA protected processing endpoint.</small></div><span class="pill">Running…</span></div>';
-  try{
-    const payload = { request:req.body, observation:observation, source:'ANVORA', algorithmVersion:'ANVORA-EO-S1-0.1' };
-    const response = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)});
-    const text = await response.text();
-    let data = null;
-    try { data = text ? JSON.parse(text) : null; } catch(e) { throw new Error('Backend returned a non-JSON response (HTTP '+response.status+').'); }
-    if(!response.ok || data?.status==='ERROR' || data?.error) throw new Error(data?.error || ('Backend request failed with HTTP '+response.status));
-    if(typeof renderS1Result==='function') renderS1Result(data,false);
-    window.ANVORA_S1_RESULT={simulated:false,data:data};
-    if(window.ANVORA_EO_OBSERVATION){
-      window.ANVORA_EO_OBSERVATION.processingStatus='PROCESSED';
-      window.ANVORA_EO_OBSERVATION.algorithmVersion='ANVORA-EO-S1-0.1';
-      window.ANVORA_EO_OBSERVATION.derivedMetrics=data?.data||data?.derivedMetrics||[];
-      window.ANVORA_EO_OBSERVATION.assuranceNote='Sentinel-1 processing returned measured SAR statistics. These measurements do not by themselves prove a farmer practice.';
-      const pre=document.getElementById('eoJson'); if(pre) pre.textContent=JSON.stringify(window.ANVORA_EO_OBSERVATION,null,2);
-    }
-    if(status) status.innerHTML='<div class="control-row"><div><b>Sentinel-1 processing completed</b><small>Measured SAR statistics returned from the ANVORA backend.</small></div><span class="pill">Measured</span></div>';
-    return data;
-  }catch(err){
-    if(status) status.innerHTML='<div class="control-row"><div><b>Sentinel-1 processing failed</b><small>'+esc(err?.message||String(err))+'</small></div><span class="pill">Review</span></div>';
-    throw err;
-  }
-}
-</script>
-'''
-              s = s.replace('</body>', js + '</body>', 1)
-              p.write_text(s, encoding='utf-8')
       - name: Commit patch
         run: |
           git config user.name "github-actions[bot]"
