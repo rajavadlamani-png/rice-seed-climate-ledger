@@ -211,167 +211,10 @@ function exportAuditorPDF(){anvoraPDF("auditor","ANVORA Auditor / Verifier Revie
 function printReport(id){
   const s=document.getElementById(id);if(!s)return;
   const w=window.open("","_blank");
-  w.document.write(`<html><head><title>ANVORA Report</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#172033}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:7px}.exec-toolbar{display:none}</style>
-<style id="anvora-v21-responsive">
-.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.table-wrap table{min-width:720px}
-.exec-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
-.filter-grid{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:10px}
-.filter-grid .wide{grid-column:span 2}
-.explorer-table{font-size:12px}
-.explorer-table th,.explorer-table td{white-space:nowrap}
-.status-chip{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800}
-.status-pass{background:#e5f4ec;color:#176b52}.status-review{background:#fff3d6;color:#8a5a00}
-.status-not{background:#f0f2f3;color:#66736e}.status-risk{background:#fde7e4;color:#a33a32}
-.mini-bar{height:8px;background:#edf1f5;border-radius:99px;overflow:hidden}.mini-bar span{display:block;height:100%;background:#315f8a}
-@media(max-width:900px){
-  .exec-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .filter-grid .wide{grid-column:span 1}
-}
-@media(max-width:560px){
-  header{padding:22px 16px}.wrap{width:100%;padding-left:14px;padding-right:14px}
-  main{padding-top:14px}.card{padding:14px;border-radius:12px}
-  .exec-kpis{grid-template-columns:1fr 1fr;gap:9px}.exec-kpi{padding:13px}
-  .exec-kpi-value{font-size:20px}.exec-hero{padding:20px}.exec-hero h1{font-size:24px}
-  .filter-grid{grid-template-columns:1fr}
-  .filter-grid .wide{grid-column:span 1}
-  .nav{padding-left:2px;padding-right:2px}
-  .nav button{padding:9px 10px;font-size:12px;white-space:nowrap}
-  .exec-toolbar button{width:100%}
-}
-</style>
-</head><body>"+s.innerHTML+"
-
-
-<script id="anvora-v44-sentinel1-processing">
-function isoLocalToUtc(v){return v?new Date(v).toISOString():null;}
-function s1Evalscript(){return `//VERSION=3
-function setup(){return {input:[{bands:["VV","VH","dataMask"]}],output:[{id:"backscatter",bands:2,sampleType:"FLOAT32"},{id:"dataMask",bands:1}]};}
-function evaluatePixel(samples){return {backscatter:[samples.VV,samples.VH],dataMask:[samples.dataMask]};}`;}
-function selectedAcqForS1(){const o=window.ANVORA_EO_OBSERVATION;if(o&&o.acquisitionId)return o;const item=selectedEOItem();if(!item)return null;return {plotId:acqPayload().plotId,acquisitionId:item.id,acquisitionDateTime:item.datetime,requestedBbox:acqPayload().bbox};}
-function loadSelectedAcqIntoS1(){const o=selectedAcqForS1();if(!o){alert('Select an acquisition in v4.3 first.');return;}const d=o.acquisitionDateTime?new Date(o.acquisitionDateTime):new Date(),before=new Date(d-60000),after=new Date(d.getTime()+60000);const fmt=x=>{const z=new Date(x),p=n=>String(n).padStart(2,'0');return z.getFullYear()+'-'+p(z.getMonth()+1)+'-'+p(z.getDate())+'T'+p(z.getHours())+':'+p(z.getMinutes());};document.getElementById('s1From').value=fmt(before);document.getElementById('s1To').value=fmt(after);document.getElementById('s1Status').innerHTML='<div class="control-row"><div><b>Selected acquisition loaded</b><small>'+esc(o.acquisitionId||'—')+' · '+esc(fmtDate(o.acquisitionDateTime))+'</small></div><span class="pill">Linked</span></div>';buildS1StatsRequest();}
-function s1StatsPayload(){const o=selectedAcqForS1(),bbox=o?.requestedBbox||acqPayload().bbox,from=isoLocalToUtc(document.getElementById('s1From').value),to=isoLocalToUtc(document.getElementById('s1To').value),coeff=document.getElementById('s1Coeff').value,res=Math.max(10,Number(document.getElementById('s1Resolution').value||10)),agg=document.getElementById('s1Agg').value,orbit=document.getElementById('s1Orbit').value,pol=document.getElementById('s1Pol').value,dataFilter={};if(orbit)dataFilter.orbitDirection=orbit;if(pol)dataFilter.polarization=pol;return {input:{bounds:{bbox,properties:{crs:'http://www.opengis.net/def/crs/EPSG/0/4326'}},data:[{type:'sentinel-1-grd',dataFilter,processing:{orthorectify:true,backCoeff:coeff}}]},aggregation:{timeRange:{from,to},aggregationInterval:{of:agg},evalscript:s1Evalscript(),resx:res,resy:res},calculations:{default:{statistics:{default:{percentiles:{k:[10,50,90]}}}}}};}
-function buildS1StatsRequest(){const p=s1StatsPayload(),out={endpoint:'https://sh.dataspace.copernicus.eu/statistics/v1',method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:p};document.getElementById('s1Request').textContent=JSON.stringify(out,null,2);document.getElementById('s1Status').innerHTML='<div class="control-row"><div><b>Processing request built</b><small>Statistical API contract generated for Sentinel-1 GRD VV/VH.</small></div><span class="pill">Ready</span></div><div class="control-row"><div><b>Execution boundary</b><small>Authentication must be handled by ANVORA backend or an explicitly configured OAuth client.</small></div><span class="pill">Protected</span></div>';window.ANVORA_S1_REQUEST=out;return out;}
-function fmtNum(v){return v==null?'—':Number(v).toFixed(5);}
-function renderS1Result(data,simulated){const box=document.getElementById('s1Output');if(!box)return;const intervals=Array.isArray(data?.data)?data.data:[];let rows=[];intervals.forEach((it,i)=>{const out=it.outputs||{},bands=out.backscatter?.bands||{},names=Object.keys(bands),parts=[];names.forEach(n=>{const st=bands[n]?.stats;if(st)parts.push(n+': mean '+fmtNum(st.mean)+' · sd '+fmtNum(st.stDev)+' · n '+fmtNum(st.sampleCount));});rows.push('<div class="control-row"><div><b>Interval '+(i+1)+'</b><small>'+esc(it.interval?.from||'')+' → '+esc(it.interval?.to||'')+' · '+esc(parts.join(' | ')||'Statistics returned')+'</small></div><span class="pill">'+(simulated?'Simulated':'Measured')+'</span></div>');});if(!rows.length)rows.push('<div class="control-row"><div><b>No statistics parsed</b><small>Inspect the raw response JSON or verify the backend contract.</small></div><span class="pill">Review</span></div>');box.innerHTML=rows.join('')+'<pre style="white-space:pre-wrap;background:#f6f8f6;padding:12px;border-radius:10px;border:1px solid #dce5df;overflow:auto;max-height:280px;margin-top:10px">'+esc(JSON.stringify(data,null,2))+'</pre>';window.ANVORA_S1_RESULT={simulated,data};}
-async function checkS1Connector(){
-  const endpoint=document.getElementById('s1Endpoint').value.trim().replace(/\/$/,'');
-  const status=document.getElementById('s1Status');
-  if(!endpoint){
-    status.innerHTML='<div class="control-row"><div><b>Processing endpoint missing</b><small>Enter the Cloudflare Worker endpoint first.</small></div><span class="pill">Action required</span></div>';
-    return;
-  }
-  let health;
-  try{ health=new URL(endpoint).origin+'/health'; }
-  catch{ health=endpoint.replace(/\/api\/sentinel1$/,'')+'/health'; }
-  status.innerHTML='<div class="control-row"><div><b>Checking ANVORA connector</b><small>'+esc(health)+'</small></div><span class="pill">Checking…</span></div>';
-  try{
-    const r=await fetch(health,{method:'GET',headers:{'Accept':'application/json'}});
-    const text=await r.text(); let j=null; try{j=JSON.parse(text)}catch{}
-    if(!r.ok) throw new Error('HTTP '+r.status+(text?' · '+text.slice(0,300):''));
-    status.innerHTML='<div class="control-row"><div><b>Connector reachable</b><small>Cloudflare Worker responded successfully · HTTP '+r.status+' · '+esc(j?.version||'version not reported')+'</small></div><span class="pill">Ready</span></div><div class="control-row"><div><b>Copernicus credentials</b><small>'+esc(j?.copernicusConfigured===true?'Configured on server':'Not confirmed')+'</small></div><span class="pill">'+esc(j?.copernicusConfigured===true?'Protected':'Check settings')+'</span></div><div class="control-row"><div><b>Statistical API</b><small>'+esc(j?.statsEndpoint||'Configured server-side')+'</small></div><span class="pill">Protected</span></div>';
-  }catch(err){
-    status.innerHTML='<div class="control-row"><div><b>Connector check failed</b><small>'+esc(err.message||String(err))+'</small></div><span class="pill">Not connected</span></div><div class="control-row"><div><b>Expected health URL</b><small>'+esc(health)+'</small></div><span class="pill">Check endpoint</span></div>';
-  }
-}
-
-async function runS1Backend(event){
-  if(event){event.preventDefault();event.stopPropagation();}
-  const req=buildS1StatsRequest();
-  const endpoint=document.getElementById('s1Endpoint').value.trim().replace(/\/$/,'');
-  const status=document.getElementById('s1Status');
-  if(!endpoint){
-    status.innerHTML='<div class="control-row"><div><b>Processing endpoint missing</b><small>Enter the Cloudflare Worker endpoint first.</small></div><span class="pill">Action required</span></div>';
-    return;
-  }
-  const payload={
-    provider:'copernicus-sentinel-hub',
-    request:{
-      endpoint:req.endpoint,
-      method:req.method,
-      headers:req.headers,
-      body:req.body
-    },
-    plotId:acqPayload().plotId,
-    acquisitionId:selectedAcqForS1()?.acquisitionId||null
-  };
-  status.innerHTML='<div class="control-row"><div><b>Calling ANVORA processing backend</b><small>'+esc(endpoint)+'</small></div><span class="pill">Processing…</span></div><div class="control-row"><div><b>Protected execution</b><small>OAuth token is created only inside the Cloudflare Worker and is not sent from this page.</small></div><span class="pill">Server-side</span></div>';
-  const started=Date.now();
-  try{
-    const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),40000);
-    let r;
-    try{
-      r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload),signal:controller.signal});
-    }finally{clearTimeout(timer);}
-    const text=await r.text();
-    let data=null; try{data=JSON.parse(text)}catch{}
-    if(!r.ok){
-      const detail=data?.error || data?.data?.error || data?.data?.raw || text || 'No response body';
-      throw new Error('HTTP '+r.status+' · '+detail);
-    }
-    renderS1Result(data,false);
-    const upstreamStatus=data?.upstreamHttpStatus!=null?' · Copernicus HTTP '+data.upstreamHttpStatus:'';
-    const elapsed=data?.elapsedMs!=null?data.elapsedMs:(Date.now()-started);
-    status.innerHTML='<div class="control-row"><div><b>Authenticated processing completed</b><small>Cloudflare Worker returned the Sentinel-1 statistics response · '+elapsed+' ms'+upstreamStatus+'</small></div><span class="pill">Measured</span></div><div class="control-row"><div><b>Observation provenance</b><small>Provider response received through ANVORA server-side connector. This is an observation record; practice inference remains subject to a separate validated algorithm and QA gate.</small></div><span class="pill">Evidence</span></div>';
-  }catch(err){
-    const msg=err?.name==='AbortError'?'Frontend request timed out after 40 seconds':(err?.message||String(err));
-    status.innerHTML='<div class="control-row"><div><b>Authenticated processing failed</b><small>'+esc(msg)+'</small></div><span class="pill">Review</span></div><div class="control-row"><div><b>What to check</b><small>Open the Worker health URL first. If health is Ready, the error shown above should now include the Copernicus HTTP status or response body.</small></div><span class="pill">Diagnostic</span></div>';
-  }
-}
-
-function simulateS1Stats(){
-  const req=buildS1StatsRequest();
-  const from=req.body.aggregation.timeRange.from;
-  const to=req.body.aggregation.timeRange.to;
-  const sim={status:'SIMULATED',note:'Synthetic demonstration only — not an observation of the selected field.',data:[]};
-  sim.data.push({interval:{from:from,to:to},outputs:{backscatter:{bands:{VV:{stats:{min:0.012,max:0.210,mean:0.06124,stDev:0.02131,sampleCount:1248,noDataCount:12}},VH:{stats:{min:0.002,max:0.092,mean:0.01871,stDev:0.00822,sampleCount:1248,noDataCount:12}}}}}});
-  renderS1Result(sim,true);
-  document.getElementById('s1Status').innerHTML='<div class="control-row"><div><b>Sandbox simulation completed</b><small>VV/VH values are synthetic and must not enter an evidence or calculation run.</small></div><span class="pill">Simulation</span></div>';
-}
-
-</script>
-
-
-<style id="anvora-v452-poc-ui">
-/* v4.5.2: Remote Connectors is a full-width working canvas; other pages retain navigation. */
-body.poc-connectors-active{--sidebar:0px}
-body.poc-connectors-active nav{transform:translateX(-100%);box-shadow:none}
-body.poc-connectors-active header{left:0}
-body.poc-connectors-active main.wrap{margin-left:0}
-body.poc-connectors-active footer{margin-left:0}
-body.poc-connectors-active .anvora-sidebar-toggle{left:14px}
-</style>
-<script id="anvora-v452-poc-ui-engine">
-(function(){
-  function setPOC(on){
-    document.body.classList.toggle('poc-connectors-active', !!on);
-    const b=document.querySelector('.anvora-sidebar-toggle');
-    if(b){
-      b.textContent=on?'›':'‹';
-      b.setAttribute('aria-label',on?'Expand ANVORA navigation':'Collapse ANVORA navigation');
-    }
-  }
-  function wire(){
-    document.querySelectorAll('.secondary-nav button[data-page="connectors"]').forEach(b=>{
-      b.addEventListener('click',()=>setTimeout(()=>setPOC(true),0));
-    });
-    document.querySelectorAll('.secondary-nav button:not([data-page="connectors"])').forEach(b=>{
-      b.addEventListener('click',()=>setTimeout(()=>setPOC(false),0));
-    });
-    const active=document.querySelector('.secondary-nav button.active[data-page="connectors"]');
-    if(active) setPOC(true);
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(wire,50));
-  else setTimeout(wire,50);
-})();
-</script>
-
-<meta name="anvora-build" content="v4.5.6-authenticated-backend-contract"><!-- v4.5.6: frontend and Worker use the same wrapper contract. --></body></html>"`);
+  const reportStyles="<style>body{font-family:Arial,sans-serif;padding:30px;color:#172033}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:7px}.exec-toolbar{display:none}</style><style>.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}.table-wrap table{min-width:720px}.exec-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.filter-grid{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:10px}.filter-grid .wide{grid-column:span 2}.explorer-table{font-size:12px}.explorer-table th,.explorer-table td{white-space:nowrap}.status-chip{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800}.status-pass{background:#e5f4ec;color:#176b52}.status-review{background:#fff3d6;color:#8a5a00}.status-not{background:#f0f2f3;color:#66736e}.status-risk{background:#fde7e4;color:#a33a32}.mini-bar{height:8px;background:#edf1f5;border-radius:99px;overflow:hidden}.mini-bar span{display:block;height:100%;background:#315f8a}@media(max-width:900px){.exec-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-grid .wide{grid-column:span 1}}@media(max-width:560px){header{padding:22px 16px}.wrap{width:100%;padding-left:14px;padding-right:14px}main{padding-top:14px}.card{padding:14px;border-radius:12px}.exec-kpis{grid-template-columns:1fr 1fr;gap:9px}.exec-kpi{padding:13px}.exec-kpi-value{font-size:20px}.exec-hero{padding:20px}.exec-hero h1{font-size:24px}.filter-grid{grid-template-columns:1fr}.filter-grid .wide{grid-column:span 1}.nav{padding-left:2px;padding-right:2px}.nav button{padding:9px 10px;font-size:12px;white-space:nowrap}.exec-toolbar button{width:100%}}</style>";
+  w.document.write("<!doctype html><html><head><title>ANVORA Report</title>"+reportStyles+"</head><body>"+s.innerHTML+"</body></html>");
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
 }
-
 </script>
 <style id="raja-branding">
   .raja-brand{font-weight:700;letter-spacing:.2px}
@@ -1859,7 +1702,7 @@ function refreshANVORAv21(){
   };
   // Dashboard is the default landing screen.
   window.addEventListener('load',()=>{
-    setTimeout(()=>window.showPage('home'),20);
+    setTimeout(()=>window.showPage('connectors'),20);
   });
 })();
 </script><script id="anvora-v38-architecture">
@@ -2021,18 +1864,19 @@ async function discoverLiveAcquisitions(){
 <script id="anvora-v43-observation-engine">
 function selectedEOItem(){
   const live=window.ANVORA_LIVE_ACQUISITIONS;
-  if(!live || !Array.isArray(live.items) || !live.items.length) return null;
+  const items=live?.response?.items||live?.items;
+  if(!Array.isArray(items) || !items.length) return null;
   const radios=[...document.querySelectorAll('input[name="eoAcqSelect"]')];
   const idx=Math.max(0,radios.findIndex(r=>r.checked));
-  return live.items[idx]||live.items[0]||null;
+  return items[idx]||items[0]||null;
 }
 function bboxIntersects(a,b){
   if(!Array.isArray(a)||a.length<4||!Array.isArray(b)||b.length<4) return false;
   return a[0]<=b[2] && a[2]>=b[0] && a[1]<=b[3] && a[3]>=b[1];
 }
 function previewEOSelection(idx){
-  const live=window.ANVORA_LIVE_ACQUISITIONS; if(!live||!live.items||!live.items[idx]) return;
-  const item=live.items[idx];
+  const live=window.ANVORA_LIVE_ACQUISITIONS,items=live?.response?.items||live?.items; if(!Array.isArray(items)||!items[idx]) return;
+  const item=items[idx];
   const id=document.getElementById('eoAcqId'); if(id) id.textContent=(item.id||'—').slice(0,24)+(item.id&&item.id.length>24?'…':'');
   const rec=document.getElementById('eoRecord'); if(rec) rec.innerHTML='<div class="control-row"><div><b>Selected acquisition</b><small>'+esc(item.id||'—')+'</small></div><span class="pill">Selected</span></div><div class="control-row"><div><b>Acquisition time</b><small>'+esc(fmtDate(item.datetime))+'</small></div><span class="pill">Catalogue</span></div>';
 }
