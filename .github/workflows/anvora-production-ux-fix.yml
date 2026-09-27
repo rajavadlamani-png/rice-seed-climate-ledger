@@ -1,0 +1,189 @@
+name: ANVORA production UX and evidence patch
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message != 'Apply ANVORA production UX and evidence patch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch index.html safely
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          css = r'''
+<style id="anvora-production-ux">
+/* ANVORA production UX: navigation must never disappear during normal navigation. */
+body.poc-connectors-active nav, body.poc-connectors-active .nav { transform:none !important; visibility:visible !important; opacity:1 !important; }
+#anvoraEvidenceSummary{margin:16px 0;padding:20px;border:1px solid #dce7e2;border-radius:16px;background:#fff;box-shadow:0 8px 28px rgba(18,52,42,.06)}
+#anvoraEvidenceSummary .ae-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+#anvoraEvidenceSummary .ae-item{padding:13px;border:1px solid #e5ece8;border-radius:12px;background:#f8fbf9}
+#anvoraEvidenceSummary .ae-label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6d7d76;font-weight:800}
+#anvoraEvidenceSummary .ae-value{font-size:17px;font-weight:800;margin-top:4px}
+#anvoraEvidenceSummary .ae-note{margin-top:14px;padding:11px 12px;border-left:4px solid #176b52;background:#eef7f3;border-radius:7px}
+#anvoraEvidenceSummary .ae-visual{margin-top:14px;padding:14px;border:1px solid #e5ece8;border-radius:12px;background:#fbfcfb}
+#anvoraEvidenceSummary canvas{width:100%;height:180px;display:block}
+.anvora-tech-toggle{position:fixed;right:16px;bottom:16px;z-index:9999;border:1px solid #cfdcd7;background:#fff;color:#17302a;border-radius:999px;padding:9px 13px;font-weight:700;box-shadow:0 5px 18px rgba(18,52,42,.12);cursor:pointer}
+body.anvora-simple-mode pre,body.anvora-simple-mode .debug,body.anvora-simple-mode .technical-detail,body.anvora-simple-mode .raw-output{display:none !important}
+@media(max-width:850px){#anvoraEvidenceSummary .ae-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){#anvoraEvidenceSummary .ae-grid{grid-template-columns:1fr}}
+</style>
+'''
+
+          js = r'''
+<script id="anvora-production-ux-script">
+(function(){
+  const $=id=>document.getElementById(id);
+  const esc0=x=>String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  function navFix(){
+    document.body.classList.remove('poc-connectors-active');
+    const n=document.querySelector('nav');
+    if(n){n.style.transform='none';n.style.visibility='visible';n.style.opacity='1';}
+  }
+
+  function selectedItem(){
+    const o=window.ANVORA_EO_OBSERVATION;
+    if(o && o.acquisitionId) return o;
+    const live=window.ANVORA_LIVE_ACQUISITIONS;
+    const items=live?.response?.items||[];
+    const radios=[...document.querySelectorAll('input[name="eoAcqSelect"]')];
+    const idx=Math.max(0,radios.findIndex(r=>r.checked));
+    return items[idx]||items[0]||null;
+  }
+
+  function findStats(){
+    const r=window.ANVORA_S1_RESULT;
+    const data=r?.data;
+    const intervals=Array.isArray(data?.data)?data.data:[];
+    const out=[];
+    intervals.forEach(it=>{
+      const bands=it?.outputs?.backscatter?.bands||{};
+      Object.keys(bands).forEach(k=>{
+        const st=bands[k]?.stats;
+        if(st) out.push({band:k,mean:Number(st.mean),median:Number(st.median),sd:Number(st.stDev),n:Number(st.sampleCount)});
+      });
+    });
+    return out;
+  }
+
+  function visualise(stats){
+    const c=document.querySelector('#anvoraEvidenceSummary canvas'); if(!c||!stats.length)return;
+    const dpr=window.devicePixelRatio||1,w=c.clientWidth||700,h=180;c.width=w*dpr;c.height=h*dpr;
+    const ctx=c.getContext('2d');ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
+    const vals=stats.map(x=>x.mean).filter(Number.isFinite);if(!vals.length)return;
+    const min=Math.min(...vals),max=Math.max(...vals),span=Math.max(.1,max-min);
+    ctx.strokeStyle='#dce7e2';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(42,145);ctx.lineTo(w-20,145);ctx.stroke();
+    const bw=Math.min(120,(w-90)/Math.max(1,stats.length)-18);
+    stats.forEach((x,i)=>{const v=(x.mean-min)/span;const bh=25+v*90;const xx=55+i*(bw+18);const yy=145-bh;ctx.fillStyle='#176b52';ctx.fillRect(xx,yy,bw,bh);ctx.fillStyle='#17302a';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText(x.band,xx+bw/2,162);ctx.fillText(Number(x.mean).toFixed(2)+' dB',xx+bw/2,yy-7);});
+    ctx.textAlign='left';ctx.fillStyle='#61736d';ctx.font='11px system-ui';ctx.fillText('Measured Sentinel-1 backscatter mean — evidence visualization',42,18);
+  }
+
+  function evidenceSummary(){
+    const page=$('remoteEvidence'); if(!page)return;
+    let box=$('anvoraEvidenceSummary');
+    if(!box){
+      box=document.createElement('div');box.id='anvoraEvidenceSummary';
+      const main=page.querySelector('.re-main')||page;
+      main.insertBefore(box,main.firstChild);
+    }
+    const o=window.ANVORA_EO_OBSERVATION||{};
+    const item=selectedItem()||{};
+    const stats=findStats();
+    const measured=!!window.ANVORA_S1_RESULT && !window.ANVORA_S1_RESULT.simulated;
+    const bands=stats.map(x=>x.band+': '+Number(x.mean).toFixed(2)+' dB').join(' · ');
+    const source=o.source||'Copernicus Data Space';
+    const dt=o.acquisitionDateTime||item.datetime||'';
+    const url=o.stacItemUrl||item.self||'';
+    box.innerHTML=`
+      <div class="kicker">FIELD OBSERVATION</div>
+      <h2>${measured?'Satellite evidence processed':'Observation record created'}</h2>
+      <p class="muted">${measured?'Measured Sentinel-1 evidence is available for this acquisition.':'The acquisition is confirmed, but image processing has not yet produced measured field metrics.'}</p>
+      <div class="ae-grid">
+        <div class="ae-item"><div class="ae-label">Status</div><div class="ae-value">${measured?'Measured':'Metadata only'}</div></div>
+        <div class="ae-item"><div class="ae-label">Observation</div><div class="ae-value">${esc0(o.observationId||'Not created')}</div></div>
+        <div class="ae-item"><div class="ae-label">Date</div><div class="ae-value">${esc0(dt?new Date(dt).toLocaleDateString():'—')}</div></div>
+        <div class="ae-item"><div class="ae-label">Signal</div><div class="ae-value">${esc0(bands||'Not yet measured')}</div></div>
+      </div>
+      <div class="ae-note"><b>Plain-language interpretation:</b> ${measured?'A measurable radar signal has been returned for the selected acquisition. A practice such as drainage, irrigation or fertilizer application is <b>not inferred automatically</b> from this single observation.':'The catalogue confirms that a Sentinel-1 acquisition exists for the selected field context. No practice conclusion is established yet.'}</div>
+      <div class="ae-visual"><b>Visual evidence</b><p class="muted" style="margin:4px 0 8px">${measured?'Measured SAR statistics visualized from the returned observation. This is an evidence visualization, not a photograph and not a fabricated satellite image.':'A visual satellite product is not shown until imagery/derived metrics are actually returned.'}</p><canvas></canvas>${url?'<div style="margin-top:8px"><a href="'+esc0(url)+'" target="_blank" rel="noopener">Open source STAC record</a></div>':''}</div>`;
+    visualise(stats);
+  }
+
+  function addProcessButton(){
+    const page=$('remoteEvidence');if(!page)return;
+    const head=page.querySelector('.re-head');if(!head||head.querySelector('#anvoraProcessS1'))return;
+    const b=document.createElement('button');b.id='anvoraProcessS1';b.className='primary';b.style.marginTop='12px';b.textContent='Process selected Sentinel-1 evidence';
+    b.onclick=async function(){
+      try{
+        if(typeof loadSelectedAcqIntoS1==='function') loadSelectedAcqIntoS1();
+        if(typeof runS1Backend==='function') await runS1Backend();
+        evidenceSummary();
+      }catch(e){alert('Sentinel-1 processing could not be completed: '+(e?.message||e));}
+    };
+    head.appendChild(b);
+  }
+
+  function installTechToggle(){
+    if(document.querySelector('.anvora-tech-toggle'))return;
+    const b=document.createElement('button');b.className='anvora-tech-toggle';b.textContent='Technical details';
+    b.onclick=()=>{document.body.classList.toggle('anvora-simple-mode');b.textContent=document.body.classList.contains('anvora-simple-mode')?'Show technical details':'Technical details';};
+    document.body.classList.add('anvora-simple-mode');document.body.appendChild(b);
+  }
+
+  const originalShow=window.showPage;
+  if(typeof originalShow==='function'){
+    window.showPage=function(id){navFix();const r=originalShow.apply(this,arguments);setTimeout(()=>{navFix();if(id==='remoteEvidence'){addProcessButton();evidenceSummary();}},30);return r;};
+  }
+
+  const originalRemote=window.renderRemoteEvidence;
+  if(typeof originalRemote==='function'){
+    window.renderRemoteEvidence=function(){const r=originalRemote.apply(this,arguments);setTimeout(()=>{addProcessButton();evidenceSummary();},0);return r;};
+  }
+
+  const originalRun=window.runS1Backend;
+  if(typeof originalRun==='function'){
+    window.runS1Backend=async function(){const r=await originalRun.apply(this,arguments);setTimeout(evidenceSummary,50);return r;};
+  }
+
+  document.addEventListener('click',()=>setTimeout(navFix,0));
+  window.addEventListener('load',()=>{navFix();installTechToggle();addProcessButton();evidenceSummary();});
+  setTimeout(()=>{navFix();installTechToggle();addProcessButton();evidenceSummary();},250);
+})();
+</script>
+'''
+
+          # Insert CSS and JS once. These are deliberately appended as an isolated layer.
+          if 'id="anvora-production-ux"' not in s:
+              s=s.replace('</head>',css+'</head>',1)
+          if 'id="anvora-production-ux-script"' not in s:
+              s=s.replace('</body>',js+'</body>',1)
+
+          # Preserve the full live STAC item context for evidence/provenance.
+          old="items:features.map(f=>({id:f.id,datetime:f.properties?.datetime,collection:f.collection,links:f.links,bbox:f.bbox||null,self:(f.links||[]).find(x=>x.rel==='self')?.href||null}))"
+          new="items:features.map(f=>({id:f.id,datetime:f.properties?.datetime,collection:f.collection,links:f.links,bbox:f.bbox||null,self:(f.links||[]).find(x=>x.rel==='self')?.href||null,assets:f.assets||{},geometry:f.geometry||null}))"
+          if old in s and new not in s:
+              s=s.replace(old,new,1)
+
+          p.write_text(s,encoding='utf-8')
+
+      - name: Commit and remove workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Apply ANVORA production UX and evidence patch"
+          git push
+          git rm .github/workflows/anvora-production-ux-fix.yml
+          git commit -m "Remove temporary production UX patch workflow"
+          git push
