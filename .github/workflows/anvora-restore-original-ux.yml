@@ -1,28 +1,13 @@
-name: ANVORA restore original UX
+name: ANVORA restore original UX (completed)
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  restore:
-    if: github.event.head_commit.message != 'Restore original ANVORA UX'
+  completed:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Restore the original integrated ANVORA application
-        shell: bash
-        run: |
-          git show a87371ff19d791f9a28d9a3167b9a7acd2697363:index.html > index.html
-      - name: Commit restored UX
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html
-          git commit -m "Restore original ANVORA UX"
-          git push
+      - run: echo "The original integrated ANVORA UX has been restored."
