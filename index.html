@@ -292,13 +292,51 @@ main>.page{max-width:1180px;margin:0 auto}
 <style id="anvora-v31-premium">
 .premium-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;padding:30px 34px;border-radius:18px;background:linear-gradient(135deg,#10231f 0%,#173b31 58%,#205744 100%);color:#fff;box-shadow:0 14px 35px rgba(16,35,31,.14);margin-bottom:14px}.premium-hero h1{font-size:34px;line-height:1.08;max-width:760px;margin:8px 0 10px;letter-spacing:-.035em}.premium-hero p{max-width:720px;color:#c9d9d3;margin:0;font-size:14px}.premium-hero .eyebrow{color:#8fc5b3}.hero-actions{display:flex;gap:8px;flex-wrap:wrap}.premium-hero button:not(.primary){background:rgba(255,255,255,.09);color:#fff;border-color:rgba(255,255,255,.18)}.dashboard-strip{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid #e0e8e4;border-radius:12px;padding:12px 15px;margin-bottom:14px;box-shadow:0 3px 12px rgba(18,52,42,.04)}.dash-context{display:flex;align-items:center;gap:10px;font-size:13px}.context-label,.kpi-label{font-size:10px;letter-spacing:.12em;font-weight:800;color:#789087}.status-dot{width:7px;height:7px;border-radius:50%;background:#3b8f69;display:inline-block}.dash-actions{display:flex;gap:6px}.dash-actions button{font-size:12px;padding:7px 10px}.premium-kpis{margin-bottom:16px}.kpi-card{background:#fff;border:1px solid #e1e9e5;border-radius:14px;padding:17px 18px;min-height:110px;box-shadow:0 3px 14px rgba(18,52,42,.045)}.kpi-card .metric{font-size:25px;margin:8px 0 4px}.premium-main-grid{align-items:stretch}.dashboard-card{height:100%;box-shadow:0 3px 16px rgba(18,52,42,.045);border-color:#e1e9e5}.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}.section-head h2{margin:3px 0 0;font-size:19px}.mini-status{font-size:9px;letter-spacing:.1em;font-weight:800;border:1px solid #b8d8ca;background:#eef8f3;color:#176b52;border-radius:999px;padding:6px 8px;white-space:nowrap}.workflow-track{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:20px}.workflow-track button{border:1px solid #dce7e2;background:#f8fbfa;border-radius:11px;text-align:left;padding:12px 10px;min-height:105px;display:flex;flex-direction:column;gap:5px;cursor:pointer}.workflow-track button:hover{border-color:#8ebca9;background:#f0f8f4;transform:translateY(-1px)}.workflow-track span{font-size:9px;color:#739187;font-weight:800}.workflow-track b{font-size:13px}.workflow-track small{font-size:10px;color:#70817b;line-height:1.3}.signal-list{margin-top:8px}.signal-list>div{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:13px 0;border-bottom:1px solid #edf1ef}.signal-list>div:last-child{border-bottom:0}.signal-icon{width:30px;height:30px;border-radius:9px;background:#eaf5f0;color:#176b52;font-size:9px;font-weight:800;display:grid;place-items:center}.signal-list b{font-size:13px}.signal-list p{margin:3px 0 0;font-size:11px;color:#71817b;line-height:1.35}.signal-list button{font-size:11px;padding:6px 9px}.persona-launcher{margin-top:16px}.role-card{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:6px;padding:16px;border:1px solid #dfe8e3;background:#fff;border-radius:13px;cursor:pointer;min-height:125px}.role-card:hover{border-color:#8ebca9;background:#f7fbf9;transform:translateY(-1px)}.role-card b{font-size:14px}.role-card span{font-size:11px;color:#70817b;line-height:1.4}.role-card strong{margin-top:auto;font-size:11px;color:#176b52}.notice{border-radius:10px}@media(max-width:1050px){.workflow-track{grid-template-columns:repeat(3,1fr)}.premium-hero{align-items:flex-start;flex-direction:column}.hero-actions{width:100%}}@media(max-width:650px){.dashboard-strip{align-items:flex-start;flex-direction:column;gap:10px}.workflow-track{grid-template-columns:repeat(2,1fr)}.premium-hero{padding:23px}.premium-hero h1{font-size:28px}.dash-actions{flex-wrap:wrap}.signal-list>div{grid-template-columns:30px 1fr}.signal-list button{grid-column:2;justify-self:start}}
 </style>
-</style></head>
+</style><style id="sage-harvest-brand-system">
+:root{--ink:#173b2c;--muted:#5c685f;--line:rgba(23,59,44,.14);--bg:#f4f0e6;--card:#fff;--accent:#123b2b;--accent2:#8b7542;--warn:#936a1b;--good:#176b48;--bad:#9b2c2c;--shadow:0 10px 30px rgba(23,59,44,.07)}
+body{background:#f4f0e6;color:#173b2c}
+header.anvora-site-header{position:fixed;left:var(--sidebar);right:0;top:0;height:var(--topbar);z-index:30;padding:0;background:#fff;color:#173b2c;border-bottom:1px solid rgba(23,59,44,.14);box-shadow:0 2px 14px rgba(18,52,42,.06)}
+header.anvora-site-header .wrap{max-width:none;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.anvora-brand{display:inline-flex;align-items:center;min-width:0}
+.anvora-brand img{display:block;width:clamp(175px,24vw,240px);max-height:54px;object-fit:contain;object-position:left center}
+.anvora-brand-context{display:flex;align-items:center;justify-content:flex-end;gap:22px;flex-wrap:wrap}
+.anvora-brand-context span{font-size:10px;font-weight:800;letter-spacing:.14em;color:#6e7e70}
+.anvora-brand-context a{display:inline-block;color:#173b2c;text-decoration:none;font-size:12px;font-weight:800;border:1px solid rgba(23,59,44,.18);border-radius:999px;padding:9px 13px;background:#f4f0e6}
+.anvora-brand-context a:hover{background:#e9eee5;border-color:#8b7542}
+.persona-nav:before{content:'SAGE HARVEST LABS';color:#d9c07c}
+.premium-hero{background:linear-gradient(135deg,#123b2b 0%,#173b2c 58%,#285a43 100%);box-shadow:0 14px 35px rgba(16,35,31,.12)}
+.premium-hero .eyebrow{color:#d9c07c}
+.exec-hero{background:linear-gradient(135deg,#123b2b,#285a43);box-shadow:0 6px 24px rgba(23,59,44,.08)}
+.mini-bar span,.bar-fill{background:#8b7542}
+.bar>span{background:linear-gradient(90deg,#123b2b,#8b7542)}
+.kpi-card,.exec-kpi,.chart-card,.dashboard-card{border-color:rgba(23,59,44,.14);box-shadow:0 6px 24px rgba(23,59,44,.045)}
+button.primary,.btn,button.primary:hover{background:#123b2b}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #c9a75c;outline-offset:2px}
+.page{display:none}
+.page.active{display:block!important}
+@media(max-width:850px){
+ header.anvora-site-header{left:0;height:var(--topbar);position:sticky}
+ header.anvora-site-header .wrap{padding:0 16px}
+ .anvora-brand img{width:clamp(145px,38vw,205px);max-height:44px}
+ .anvora-brand-context{gap:8px}
+ .anvora-brand-context span{display:none}
+ .anvora-brand-context a{font-size:11px;padding:8px 10px}
+}
+@media(max-width:560px){
+ .anvora-brand img{width:145px}
+ .anvora-brand-context a{max-width:150px;text-align:center}
+ .premium-hero{display:block;padding:22px}
+ .premium-hero h1{font-size:27px}
+ .hero-actions{margin-top:16px}
+}
+</style>
+</head>
 <body>
-<header><div class="wrap">
-  <div class="brand">SAGE HARVEST</div>
-  <div class="sub">ANVORA · Rice Climate Ledger</div>
-  <div class="tag">FIELD-TO-SEED CLIMATE ACCOUNTING &amp; MRV · Measure. Trace. Reconcile. Report.</div>
-  <div style="margin-top:16px"><a href="https://rajavadlamani-png.github.io/Sage-Harvest/labs.html" style="display:inline-block;color:#fff;text-decoration:none;font-weight:750;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:8px 12px">← Back to Tools &amp; Intelligence</a></div>
+<header class="anvora-site-header"><div class="wrap anvora-brandbar">
+  <a class="anvora-brand" href="https://rajavadlamani-png.github.io/Sage-Harvest/" aria-label="Sage Harvest home">
+    <img src="https://rajavadlamani-png.github.io/Sage-Harvest/assets/img/sage-harvest-logo-live-20261007.svg" alt="Sage Harvest Agro Pvt. Limited">
+  </a>
+  <div class="anvora-brand-context"><span>SAGE HARVEST LABS · CLIMATE INTELLIGENCE</span><a href="https://rajavadlamani-png.github.io/Sage-Harvest/labs.html">← Back to Tools &amp; Intelligence</a></div>
 </div></header>
 
 <nav><div class="wrap nav persona-nav">
