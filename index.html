@@ -2377,9 +2377,19 @@ footer{max-width:1360px;margin:0 auto;padding:22px 24px 30px!important;line-heig
 .role-switch button{border:1px solid #cbdcd4;background:#fff;color:#176b52;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:700}
 .role-switch button[aria-pressed="true"]{background:#176b52;color:#fff;border-color:#176b52}
 .role-current{font-size:12px;color:#61736d;font-weight:700}
-  .persona-nav{display:none!important}\n.secondary-nav{display:none}\nbody.anvora-role-active .secondary-nav{display:flex}\nbody.anvora-role-active .persona-nav{display:none}
-body.anvora-role-active .secondary-nav button[hidden]{display:none}
+  /* Role-first canvas overrides legacy navigation shell */
+.persona-nav,.secondary-nav,nav,.anvora-sidebar-toggle{display:none!important}
+body.anvora-role-active header{position:sticky!important;left:0!important;width:100%!important}
+body.anvora-role-active main.wrap{margin:0 auto!important;max-width:1180px!important;width:100%!important;padding:28px 24px 64px!important;min-height:calc(100vh - 72px)}
+body.anvora-role-active footer{margin:0 auto!important;max-width:1180px!important}
+body.anvora-role-active #home{display:block!important;min-height:0!important}
 body.anvora-role-active #home > :not(.role-hub){display:none!important}
+body.anvora-role-active .role-hub{display:block!important;margin:0 auto 24px!important;width:100%;min-height:0}
+body.anvora-role-active .role-grid{align-items:stretch}
+body.anvora-role-active .role-card{min-height:180px}
+body.anvora-role-active .page:not(#home){display:none!important}
+body.anvora-role-active .page.active:not(#home){display:block!important}
+body.anvora-role-active #home .role-card .role-links button{white-space:normal}
 @media(max-width:700px){.role-grid{grid-template-columns:1fr}.role-hub{padding:17px}.role-card{padding:15px}}
 </style>
 <script id="anvora-role-workspaces-engine">
@@ -2436,7 +2446,7 @@ body.anvora-role-active #home > :not(.role-hub){display:none!important}
    const label=el('span','role-current','Choose workspace');persona.append(label);
    Object.keys(roles).forEach(key=>{const b=el('button','persona',roles[key].label);b.type='button';b.addEventListener('click',()=>setRole(key));persona.append(b)});
   }
-  const home=document.getElementById('home');if(home){renderHub()}
+  const home=document.getElementById('home');if(home){renderHub();document.body.classList.add('anvora-role-active')}
   // Keep all current application pages and functions intact; only filter primary navigation.
   const old=window.showPage;
   if(typeof old==='function'&&!old.__anvoraRoleWrapped){
