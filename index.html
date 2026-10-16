@@ -347,7 +347,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   <a class="anvora-brand" href="https://rajavadlamani-png.github.io/Sage-Harvest/" aria-label="Sage Harvest home">
     <img src="https://rajavadlamani-png.github.io/Sage-Harvest/assets/img/sage-harvest-logo-live-20261007.svg" alt="Sage Harvest Agro Pvt. Limited">
   </a>
-  <div class="anvora-brand-context"><span>SAGE HARVEST LABS · CLIMATE INTELLIGENCE</span><a href="#home" onclick="showPage(\'home\');return false;">← Back to ANVORA Overview</a></div>
+  <div class="anvora-brand-context"><span>SAGE HARVEST LABS · CLIMATE INTELLIGENCE</span><a href="#home" onclick="document.body.classList.remove('poc-connectors-active','sidebar-collapsed');window.showPage('home');return false;">← Back to ANVORA Overview</a></div>
 </div></header>
 
 <nav><div class="wrap nav persona-nav">
@@ -2121,21 +2121,23 @@ body.sidebar-collapsed .anvora-sidebar-toggle{left:14px}
 
 <style id="anvora-v452-poc-ui">
 /* v4.5.2: Remote Connectors is a full-width working canvas; other pages retain navigation. */
-body.poc-connectors-active{--sidebar:0px}
-body.poc-connectors-active nav{transform:translateX(-100%);box-shadow:none}
-body.poc-connectors-active header{left:0}
-body.poc-connectors-active main.wrap{margin-left:0}
-body.poc-connectors-active footer{margin-left:0}
-body.poc-connectors-active .anvora-sidebar-toggle{left:14px}
+/* Remote Connectors must not hide the standalone ANVORA navigation. */
+body.poc-connectors-active{--sidebar:244px}
+body.poc-connectors-active nav{transform:translateX(0);box-shadow:8px 0 24px rgba(10,30,24,.10)}
+body.poc-connectors-active header{left:var(--sidebar)}
+body.poc-connectors-active main.wrap{margin-left:var(--sidebar)}
+body.poc-connectors-active footer{margin-left:var(--sidebar)}
+body.poc-connectors-active .anvora-sidebar-toggle{left:calc(var(--sidebar) - 18px)}
 </style>
 <script id="anvora-v452-poc-ui-engine">
 (function(){
   function setPOC(on){
-    document.body.classList.toggle('poc-connectors-active', !!on);
+    // Retain connector readiness behavior without collapsing the standalone app shell.
+    document.body.classList.remove('poc-connectors-active');
     const b=document.querySelector('.anvora-sidebar-toggle');
     if(b){
-      b.textContent=on?'›':'‹';
-      b.setAttribute('aria-label',on?'Expand ANVORA navigation':'Collapse ANVORA navigation');
+      b.textContent='‹';
+      b.setAttribute('aria-label','Collapse ANVORA navigation');
     }
   }
   function wire(){
