@@ -1752,7 +1752,8 @@ function refreshANVORAv21(){
   };
   // Dashboard is the default landing screen.
   window.addEventListener('load',()=>{
-    setTimeout(()=>window.showPage('connectors'),20);
+    // Keep the standalone ledger on its own dashboard at startup; do not force the EO connector POC over the app.
+    setTimeout(()=>window.showPage('home'),20);
   });
 })();
 </script><script id="anvora-v38-architecture">
@@ -2112,7 +2113,7 @@ body.sidebar-collapsed .anvora-sidebar-toggle{left:14px}
     });
     document.body.appendChild(btn);
     // Keep the full workspace visible by default on the Remote Connectors page.
-    if(location.hash==='#connectors') document.body.classList.add('sidebar-collapsed'), btn.textContent='›';
+    // Do not auto-collapse the standalone navigation from a URL hash.
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install); else install();
 })();
