@@ -2153,5 +2153,46 @@ body.poc-connectors-active .anvora-sidebar-toggle{left:14px}
 })();
 </script>
 
+
+<style id="anvora-v454-navigation-behavior-fix">
+/* Keep the standalone ledger navigation visible on every page, including Remote Connectors. */
+body.poc-connectors-active{--sidebar:244px!important}
+body.poc-connectors-active nav{transform:translateX(0)!important;box-shadow:8px 0 24px rgba(10,30,24,.10)!important}
+body.poc-connectors-active header{left:var(--sidebar)!important}
+body.poc-connectors-active main.wrap{margin-left:var(--sidebar)!important}
+body.poc-connectors-active footer{margin-left:var(--sidebar)!important}
+body.poc-connectors-active .anvora-sidebar-toggle{left:calc(var(--sidebar) - 18px)!important}
+</style>
+<script id="anvora-v454-navigation-behavior-fix-engine">
+(function(){
+  // A page transition must clear stale connector/collapsed-sidebar state.
+  const previousShowPage=window.showPage;
+  if(typeof previousShowPage==='function'){
+    window.showPage=function(id){
+      document.body.classList.remove('poc-connectors-active','sidebar-collapsed');
+      const toggle=document.querySelector('.anvora-sidebar-toggle');
+      if(toggle){
+        toggle.textContent='‹';
+        toggle.setAttribute('aria-label','Collapse ANVORA navigation');
+      }
+      return previousShowPage(id);
+    };
+  }
+  // The legacy connector handler adds the full-width class after its click.
+  // Clear that state after its handler runs; the connector page itself remains available.
+  document.addEventListener('click',function(event){
+    const connectorButton=event.target.closest('.secondary-nav button[data-page="connectors"]');
+    if(!connectorButton)return;
+    setTimeout(function(){
+      document.body.classList.remove('poc-connectors-active','sidebar-collapsed');
+      const toggle=document.querySelector('.anvora-sidebar-toggle');
+      if(toggle){
+        toggle.textContent='‹';
+        toggle.setAttribute('aria-label','Collapse ANVORA navigation');
+      }
+    },0);
+  },true);
+})();
+</script>
 </body>
 </html>
