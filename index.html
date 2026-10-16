@@ -212,7 +212,7 @@ function printReport(id){
   const s=document.getElementById(id);if(!s)return;
   const w=window.open("","_blank");
   const reportStyles="<style>body{font-family:Arial,sans-serif;padding:30px;color:#172033}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:7px}.exec-toolbar{display:none}</style><style>.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}.table-wrap table{min-width:720px}.exec-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.filter-grid{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:10px}.filter-grid .wide{grid-column:span 2}.explorer-table{font-size:12px}.explorer-table th,.explorer-table td{white-space:nowrap}.status-chip{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800}.status-pass{background:#e5f4ec;color:#176b52}.status-review{background:#fff3d6;color:#8a5a00}.status-not{background:#f0f2f3;color:#66736e}.status-risk{background:#fde7e4;color:#a33a32}.mini-bar{height:8px;background:#edf1f5;border-radius:99px;overflow:hidden}.mini-bar span{display:block;height:100%;background:#315f8a}@media(max-width:900px){.exec-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-grid .wide{grid-column:span 1}}@media(max-width:560px){header{padding:22px 16px}.wrap{width:100%;padding-left:14px;padding-right:14px}main{padding-top:14px}.card{padding:14px;border-radius:12px}.exec-kpis{grid-template-columns:1fr 1fr;gap:9px}.exec-kpi{padding:13px}.exec-kpi-value{font-size:20px}.exec-hero{padding:20px}.exec-hero h1{font-size:24px}.filter-grid{grid-template-columns:1fr}.filter-grid .wide{grid-column:span 1}.nav{padding-left:2px;padding-right:2px}.nav button{padding:9px 10px;font-size:12px;white-space:nowrap}.exec-toolbar button{width:100%}}</style>";
-  w.document.write("<!doctype html><html><head><title>ANVORA Report</title>"+reportStyles+"<style id="anvora-v453-standalone-navigation-fix">
+  w.document.write("<!doctype html><html><head><title>ANVORA Report</title>"+reportStyles+"<style id=\"anvora-v453-standalone-navigation-fix\">
 /* v4.5.3: the standalone ledger keeps its own workspace navigation visible on the EO/connector screen. */
 @media (min-width:851px) {
   body.poc-connectors-active:not(.sidebar-collapsed){--sidebar:244px}
@@ -224,95 +224,7 @@ function printReport(id){
 }
 </style>
 </head><body>"+s.innerHTML+"
-<style id="anvora-role-workspaces">
-/* Role-first task navigation; presentation only, not an authorization boundary. */
-.role-hub{margin:0 0 22px;padding:24px;background:#fff;border:1px solid #dce7e2;border-radius:18px;box-shadow:0 8px 28px rgba(18,52,42,.06)}
-.role-hub .role-eyebrow{font-size:11px;font-weight:800;letter-spacing:.12em;color:#176b52;text-transform:uppercase}
-.role-hub h1{font-size:clamp(24px,3vw,34px);line-height:1.15;margin:8px 0}
-.role-hub .role-lede{color:#61736d;max-width:760px;margin:0 0 20px}
-.role-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.role-card{border:1px solid #dce7e2;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:9px;background:#fbfdfb;min-width:0}
-.role-card h2{font-size:17px;margin:0}.role-card p{color:#61736d;margin:0;flex:1}
-.role-card .role-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
-.role-card button,.role-hub button{cursor:pointer}
-.role-card .role-enter{background:#176b52;color:#fff;border:0;border-radius:9px;padding:10px 13px;font-weight:750}
-.role-card .role-secondary{background:#fff;color:#176b52;border:1px solid #cbdcd4;border-radius:9px;padding:9px 12px;font-weight:650}
-.role-note{margin-top:16px;padding:10px 12px;border-radius:9px;background:#f5f8f6;color:#61736d;font-size:12px}
-.role-switch{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.role-switch button{border:1px solid #cbdcd4;background:#fff;color:#176b52;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:700}
-.role-switch button[aria-pressed="true"]{background:#176b52;color:#fff;border-color:#176b52}
-.role-current{font-size:12px;color:#61736d;font-weight:700}
-  .persona-nav{display:none!important}\n.secondary-nav{display:none}\nbody.anvora-role-active .secondary-nav{display:flex}\nbody.anvora-role-active .persona-nav{display:none}
-body.anvora-role-active .secondary-nav button[hidden]{display:none}
-body.anvora-role-active #home > :not(.role-hub){display:none!important}
-@media(max-width:700px){.role-grid{grid-template-columns:1fr}.role-hub{padding:17px}.role-card{padding:15px}}
-</style>
-<script id="anvora-role-workspaces-engine">
-(function(){
- 'use strict';
- const roles={
-  operations:{label:'Data Operations',summary:'Import production data, check required fields, run calculations and export outputs.',nav:['home','workspace','remoteEvidence','calculation','passport'],start:'workspace',eyebrow:'INPUT · CHECK · EXPORT',title:'Your operational workspace',desc:'Import the production dataset, resolve structural issues, run approved calculations and export the required outputs.',tasks:[['Import or update data','Upload the ANVORA workbook, review required fields and check import status.','workspace'],['Review field evidence','Inspect plot-level records and available remote corroboration.','remoteEvidence'],['Run calculations','Calculate using the configured methodology and current dataset.','calculation'],['Export climate passport','Prepare the available project output after calculation.','passport']]},
-  auditor:{label:'Audit & Assurance',summary:'Review validations, evidence, uncertainty, methodology controls and MRV readiness.',nav:['home','validation','evidence','uncertainty','mrv','methodology','control','feedback'],start:'validation',eyebrow:'VALIDATE · TRACE · REPORT',title:'Your assurance workspace',desc:'Review data quality, exceptions, supporting evidence, methodology controls and MRV readiness before preparing an assurance report.',tasks:[['Validation results','Review validation outcomes, quality flags and mass-balance issues.','validation'],['Evidence & traceability','Inspect the evidence ledger and available supporting records.','evidence'],['Uncertainty & factors','Review data confidence, factor confidence and uncertainty.','uncertainty'],['MRV readiness','Review assurance controls, gaps and readiness indicators.','mrv'],['Methodology controls','Inspect the accounting profile and factor registry.','methodology']]},
-  leadership:{label:'Leadership MIS',summary:'Monitor climate performance, management risks and readiness indicators.',nav:['home','intelligence','passport','mrv'],start:'intelligence',eyebrow:'PERFORMANCE · RISK · DECISIONS',title:'Your leadership dashboard',desc:'Focus on management indicators, climate performance, readiness and the issues that require attention—not operational data-entry screens.',tasks:[['Management intelligence','Review footprint, trends, comparisons and management attention areas.','intelligence'],['MRV readiness','Review project readiness and outstanding assurance gaps.','mrv'],['Climate Passport','Open the available disclosure output.','passport']]},
-  team:{label:'Team Reports',summary:'Find reports, evidence gaps, validation exceptions and follow-up information relevant to delivery teams.',nav:['home','remoteEvidence','validation','evidence','mrv','intelligence','passport','connectors','architecture'],start:'evidence',eyebrow:'TEAM REPORTS · EXCEPTIONS · FOLLOW-UP',title:'Your team reporting workspace',desc:'Find evidence, validation outcomes, readiness gaps and project reports relevant to delivery teams. Use specialist tools only where required by your responsibilities.',tasks:[['Evidence and records','Review available evidence and data confidence.','evidence'],['Validation exceptions','Find records that need correction or follow-up.','validation'],['Field and remote evidence','Review field records and remote corroboration.','remoteEvidence'],['Project readiness','Review MRV readiness and open gaps.','mrv'],['Specialist tools','Open connector and architecture diagnostics when relevant to your work.','connectors']]}
- };
- let activeRole=null, initialized=false;
- function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n}
- function go(id){if(typeof window.showPage==='function')window.showPage(id);else document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
- function setRole(key){
-  if(!roles[key])return;activeRole=key;document.body.classList.add('anvora-role-active');
-  document.querySelectorAll('.secondary-nav button[data-page]').forEach(b=>{b.hidden=!roles[key].nav.includes(b.dataset.page);b.setAttribute('aria-hidden',String(b.hidden))});
-  document.querySelectorAll('.role-switch button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.role===key)));
-  renderHub();go('home');
- }
- function renderHub(){
-  const home=document.getElementById('home');if(!home)return;
-  let hub=home.querySelector('.role-hub');if(!hub){hub=el('div','role-hub');hub.id='anvoraRoleHub';home.insertBefore(hub,home.firstChild)}
-  hub.replaceChildren();
-  const switcher=el('div','role-switch');
-  const current=el('span','role-current',activeRole?'Workspace: '+roles[activeRole].label:'Choose a workspace');
-  switcher.append(current);
-  Object.keys(roles).forEach(key=>{const b=el('button','',roles[key].label);b.type='button';b.dataset.role=key;b.setAttribute('aria-pressed',String(key===activeRole));b.addEventListener('click',()=>setRole(key));switcher.append(b)});
-  hub.append(switcher);
-  hub.append(el('div','role-eyebrow',activeRole?roles[activeRole].eyebrow:'ANVORA · CLIMATE INTELLIGENCE'));
-  hub.append(el('h1','',activeRole?roles[activeRole].title:'Choose the workspace for your work'));
-  hub.append(el('p','role-lede',activeRole?roles[activeRole].desc:'ANVORA brings data operations, audit and assurance, leadership MIS and team reporting into one traceable platform. Choose a workspace to see the tasks and reports relevant to your work.'));
-  const grid=el('div','role-grid');
-  const keys=activeRole?[activeRole]:Object.keys(roles);
-  keys.forEach(key=>{
-   const r=roles[key],card=el('article','role-card');card.append(el('h2','',r.label),el('p','',r.summary||r.desc||''));
-   if(!activeRole){const b=el('button','role-enter','Open workspace');b.type='button';b.addEventListener('click',()=>setRole(key));card.append(b)}
-   else{
-    const links=el('div','role-links');
-    r.tasks.forEach(t=>{const b=el('button',t[2]===r.start?'role-enter':'role-secondary',t[0]);b.type='button';b.addEventListener('click',()=>go(t[2]));links.append(b)});
-    card.append(links);
-   }
-   grid.append(card);
-  });
-  hub.append(grid);
-  const note=el('div','role-note','Beta implementation note: this selector changes the interface and navigation only. It does not authenticate a person or enforce data permissions. Role-based security must be enforced by the backend before this is treated as a protected production workspace.');
-  hub.append(note);
- }
- function init(){
-  if(initialized)return;initialized=true;
-  const persona=document.querySelector('.persona-nav');
-  if(persona){
-   persona.replaceChildren();
-   const label=el('span','role-current','Choose workspace');persona.append(label);
-   Object.keys(roles).forEach(key=>{const b=el('button','persona',roles[key].label);b.type='button';b.addEventListener('click',()=>setRole(key));persona.append(b)});
-  }
-  const home=document.getElementById('home');if(home){renderHub()}
-  // Keep all current application pages and functions intact; only filter primary navigation.
-  const old=window.showPage;
-  if(typeof old==='function'&&!old.__anvoraRoleWrapped){
-   const wrapped=function(id){if(activeRole&&roles[activeRole]&&!roles[activeRole].nav.includes(id)){renderHub();return false}return old.apply(this,arguments)};
-   wrapped.__anvoraRoleWrapped=true;window.showPage=wrapped;
-  }
-  document.querySelectorAll('.secondary-nav button[data-page]').forEach(b=>b.addEventListener('click',()=>{if(activeRole&&!roles[activeRole].nav.includes(b.dataset.page))return}));
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-})();
-</script>
+
 
 </body></html>");
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
@@ -2459,6 +2371,95 @@ footer{max-width:1360px;margin:0 auto;padding:22px 24px 30px!important;line-heig
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
  window.addEventListener('load',init);
+})();
+</script>
+<style id="anvora-role-workspaces">
+/* Role-first task navigation; presentation only, not an authorization boundary. */
+.role-hub{margin:0 0 22px;padding:24px;background:#fff;border:1px solid #dce7e2;border-radius:18px;box-shadow:0 8px 28px rgba(18,52,42,.06)}
+.role-hub .role-eyebrow{font-size:11px;font-weight:800;letter-spacing:.12em;color:#176b52;text-transform:uppercase}
+.role-hub h1{font-size:clamp(24px,3vw,34px);line-height:1.15;margin:8px 0}
+.role-hub .role-lede{color:#61736d;max-width:760px;margin:0 0 20px}
+.role-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.role-card{border:1px solid #dce7e2;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:9px;background:#fbfdfb;min-width:0}
+.role-card h2{font-size:17px;margin:0}.role-card p{color:#61736d;margin:0;flex:1}
+.role-card .role-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.role-card button,.role-hub button{cursor:pointer}
+.role-card .role-enter{background:#176b52;color:#fff;border:0;border-radius:9px;padding:10px 13px;font-weight:750}
+.role-card .role-secondary{background:#fff;color:#176b52;border:1px solid #cbdcd4;border-radius:9px;padding:9px 12px;font-weight:650}
+.role-note{margin-top:16px;padding:10px 12px;border-radius:9px;background:#f5f8f6;color:#61736d;font-size:12px}
+.role-switch{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.role-switch button{border:1px solid #cbdcd4;background:#fff;color:#176b52;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:700}
+.role-switch button[aria-pressed="true"]{background:#176b52;color:#fff;border-color:#176b52}
+.role-current{font-size:12px;color:#61736d;font-weight:700}
+  .persona-nav{display:none!important}\n.secondary-nav{display:none}\nbody.anvora-role-active .secondary-nav{display:flex}\nbody.anvora-role-active .persona-nav{display:none}
+body.anvora-role-active .secondary-nav button[hidden]{display:none}
+body.anvora-role-active #home > :not(.role-hub){display:none!important}
+@media(max-width:700px){.role-grid{grid-template-columns:1fr}.role-hub{padding:17px}.role-card{padding:15px}}
+</style>
+<script id="anvora-role-workspaces-engine">
+(function(){
+ 'use strict';
+ const roles={
+  operations:{label:'Data Operations',summary:'Import production data, check required fields, run calculations and export outputs.',nav:['home','workspace','remoteEvidence','calculation','passport'],start:'workspace',eyebrow:'INPUT · CHECK · EXPORT',title:'Your operational workspace',desc:'Import the production dataset, resolve structural issues, run approved calculations and export the required outputs.',tasks:[['Import or update data','Upload the ANVORA workbook, review required fields and check import status.','workspace'],['Review field evidence','Inspect plot-level records and available remote corroboration.','remoteEvidence'],['Run calculations','Calculate using the configured methodology and current dataset.','calculation'],['Export climate passport','Prepare the available project output after calculation.','passport']]},
+  auditor:{label:'Audit & Assurance',summary:'Review validations, evidence, uncertainty, methodology controls and MRV readiness.',nav:['home','validation','evidence','uncertainty','mrv','methodology','control','feedback'],start:'validation',eyebrow:'VALIDATE · TRACE · REPORT',title:'Your assurance workspace',desc:'Review data quality, exceptions, supporting evidence, methodology controls and MRV readiness before preparing an assurance report.',tasks:[['Validation results','Review validation outcomes, quality flags and mass-balance issues.','validation'],['Evidence & traceability','Inspect the evidence ledger and available supporting records.','evidence'],['Uncertainty & factors','Review data confidence, factor confidence and uncertainty.','uncertainty'],['MRV readiness','Review assurance controls, gaps and readiness indicators.','mrv'],['Methodology controls','Inspect the accounting profile and factor registry.','methodology']]},
+  leadership:{label:'Leadership MIS',summary:'Monitor climate performance, management risks and readiness indicators.',nav:['home','intelligence','passport','mrv'],start:'intelligence',eyebrow:'PERFORMANCE · RISK · DECISIONS',title:'Your leadership dashboard',desc:'Focus on management indicators, climate performance, readiness and the issues that require attention—not operational data-entry screens.',tasks:[['Management intelligence','Review footprint, trends, comparisons and management attention areas.','intelligence'],['MRV readiness','Review project readiness and outstanding assurance gaps.','mrv'],['Climate Passport','Open the available disclosure output.','passport']]},
+  team:{label:'Team Reports',summary:'Find reports, evidence gaps, validation exceptions and follow-up information relevant to delivery teams.',nav:['home','remoteEvidence','validation','evidence','mrv','intelligence','passport','connectors','architecture'],start:'evidence',eyebrow:'TEAM REPORTS · EXCEPTIONS · FOLLOW-UP',title:'Your team reporting workspace',desc:'Find evidence, validation outcomes, readiness gaps and project reports relevant to delivery teams. Use specialist tools only where required by your responsibilities.',tasks:[['Evidence and records','Review available evidence and data confidence.','evidence'],['Validation exceptions','Find records that need correction or follow-up.','validation'],['Field and remote evidence','Review field records and remote corroboration.','remoteEvidence'],['Project readiness','Review MRV readiness and open gaps.','mrv'],['Specialist tools','Open connector and architecture diagnostics when relevant to your work.','connectors']]}
+ };
+ let activeRole=null, initialized=false;
+ function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n}
+ function go(id){if(typeof window.showPage==='function')window.showPage(id);else document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
+ function setRole(key){
+  if(!roles[key])return;activeRole=key;document.body.classList.add('anvora-role-active');
+  document.querySelectorAll('.secondary-nav button[data-page]').forEach(b=>{b.hidden=!roles[key].nav.includes(b.dataset.page);b.setAttribute('aria-hidden',String(b.hidden))});
+  document.querySelectorAll('.role-switch button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.role===key)));
+  renderHub();go('home');
+ }
+ function renderHub(){
+  const home=document.getElementById('home');if(!home)return;
+  let hub=home.querySelector('.role-hub');if(!hub){hub=el('div','role-hub');hub.id='anvoraRoleHub';home.insertBefore(hub,home.firstChild)}
+  hub.replaceChildren();
+  const switcher=el('div','role-switch');
+  const current=el('span','role-current',activeRole?'Workspace: '+roles[activeRole].label:'Choose a workspace');
+  switcher.append(current);
+  Object.keys(roles).forEach(key=>{const b=el('button','',roles[key].label);b.type='button';b.dataset.role=key;b.setAttribute('aria-pressed',String(key===activeRole));b.addEventListener('click',()=>setRole(key));switcher.append(b)});
+  hub.append(switcher);
+  hub.append(el('div','role-eyebrow',activeRole?roles[activeRole].eyebrow:'ANVORA · CLIMATE INTELLIGENCE'));
+  hub.append(el('h1','',activeRole?roles[activeRole].title:'Choose the workspace for your work'));
+  hub.append(el('p','role-lede',activeRole?roles[activeRole].desc:'ANVORA brings data operations, audit and assurance, leadership MIS and team reporting into one traceable platform. Choose a workspace to see the tasks and reports relevant to your work.'));
+  const grid=el('div','role-grid');
+  const keys=activeRole?[activeRole]:Object.keys(roles);
+  keys.forEach(key=>{
+   const r=roles[key],card=el('article','role-card');card.append(el('h2','',r.label),el('p','',r.summary||r.desc||''));
+   if(!activeRole){const b=el('button','role-enter','Open workspace');b.type='button';b.addEventListener('click',()=>setRole(key));card.append(b)}
+   else{
+    const links=el('div','role-links');
+    r.tasks.forEach(t=>{const b=el('button',t[2]===r.start?'role-enter':'role-secondary',t[0]);b.type='button';b.addEventListener('click',()=>go(t[2]));links.append(b)});
+    card.append(links);
+   }
+   grid.append(card);
+  });
+  hub.append(grid);
+  const note=el('div','role-note','Beta implementation note: this selector changes the interface and navigation only. It does not authenticate a person or enforce data permissions. Role-based security must be enforced by the backend before this is treated as a protected production workspace.');
+  hub.append(note);
+ }
+ function init(){
+  if(initialized)return;initialized=true;
+  const persona=document.querySelector('.persona-nav');
+  if(persona){
+   persona.replaceChildren();
+   const label=el('span','role-current','Choose workspace');persona.append(label);
+   Object.keys(roles).forEach(key=>{const b=el('button','persona',roles[key].label);b.type='button';b.addEventListener('click',()=>setRole(key));persona.append(b)});
+  }
+  const home=document.getElementById('home');if(home){renderHub()}
+  // Keep all current application pages and functions intact; only filter primary navigation.
+  const old=window.showPage;
+  if(typeof old==='function'&&!old.__anvoraRoleWrapped){
+   const wrapped=function(id){if(activeRole&&roles[activeRole]&&!roles[activeRole].nav.includes(id)){renderHub();return false}return old.apply(this,arguments)};
+   wrapped.__anvoraRoleWrapped=true;window.showPage=wrapped;
+  }
+  document.querySelectorAll('.secondary-nav button[data-page]').forEach(b=>b.addEventListener('click',()=>{if(activeRole&&!roles[activeRole].nav.includes(b.dataset.page))return}));
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
 </body>
