@@ -2196,5 +2196,179 @@ body.poc-connectors-active .anvora-sidebar-toggle{left:calc(var(--sidebar) - 18p
   });
 })();
 </script>
+
+<style id="anvora-v50-professional-design-system">
+/* ANVORA v5.0 — cohesive, accessible, responsive product UI. Presentation only; calculation logic is unchanged. */
+:root{
+ --ink:#18362d;--muted:#62756d;--line:#dce5df;--bg:#f6f5ef;--card:#fff;
+ --accent:#245c48;--accent2:#e7f0e9;--warn:#8a641a;--danger:#a3443b;--ok:#27694f;
+ --shadow:0 5px 22px rgba(22,49,39,.055);--sidebar:248px;
+}
+html{scroll-behavior:smooth;scroll-padding-top:150px}
+body{background:var(--bg);color:var(--ink);font-family:Inter,"Segoe UI",system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.55;letter-spacing:.005em}
+.anvora-site-header{position:sticky;top:0;z-index:80;background:rgba(255,255,255,.96)!important;color:var(--ink)!important;padding:0!important;border-bottom:1px solid var(--line);backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(22,49,39,.035)}
+.anvora-brandbar{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:10px 22px!important}
+.anvora-brand img{width:clamp(140px,17vw,180px)!important;max-height:42px!important;object-fit:contain}
+.anvora-brand-context{display:flex;align-items:center;gap:14px}
+.anvora-brand-context span{font-size:10px;letter-spacing:.13em;font-weight:800;color:#758279}
+.anvora-brand-context a{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:9px 14px;background:#f7f6f0;color:var(--ink);font-size:12px;font-weight:750;text-decoration:none;white-space:nowrap}
+.anvora-brand-context a:hover{background:var(--accent2);border-color:#b9cfc1}
+nav{position:sticky!important;top:68px!important;z-index:70;background:rgba(255,255,255,.97)!important;border-bottom:1px solid var(--line)!important;box-shadow:0 5px 14px rgba(22,49,39,.035)}
+nav .wrap{max-width:1360px;padding-left:18px!important;padding-right:18px!important}
+.nav{gap:5px!important;padding:7px 0!important;scrollbar-width:thin;white-space:nowrap}
+.persona-nav{border-bottom:1px solid #edf0eb}
+.nav button,.secondary-nav button{font-size:12px!important;line-height:1.25;padding:9px 12px!important;border:1px solid transparent!important;border-radius:9px!important;white-space:nowrap;transition:background .15s ease,border-color .15s ease,color .15s ease}
+.persona-nav .persona{background:#f7f8f4!important;color:#53685e!important;border-color:#e7ebe5!important}
+.secondary-nav button{font-size:12px!important;font-weight:700!important;color:#5b6c63!important}
+.nav button.active,.nav button:hover{background:var(--accent2)!important;color:var(--accent)!important;border-color:#d1e2d5!important}
+main.wrap{max-width:1360px!important;padding:26px 24px 54px!important;margin-left:auto!important;margin-right:auto!important}
+.page{min-width:0;animation:anvoraFadeIn .18s ease-out}
+@keyframes anvoraFadeIn{from{opacity:.75;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.page>h1:first-child,.page>.card:first-child h1{font-size:clamp(24px,2.4vw,32px);letter-spacing:-.035em}
+h1,h2,h3{letter-spacing:-.025em;line-height:1.25}
+h1{font-size:clamp(24px,2.4vw,32px);font-weight:780}
+h2{font-size:19px;font-weight:760}
+h3{font-size:15px;font-weight:740}
+p{max-width:82ch}
+.muted,.sub{color:var(--muted)!important}
+.premium-hero{border:1px solid rgba(255,255,255,.08);border-radius:20px!important;padding:clamp(24px,3vw,38px)!important;box-shadow:0 14px 36px rgba(16,49,36,.13);overflow:hidden}
+.premium-hero h1{font-size:clamp(27px,3vw,40px)!important;line-height:1.12;max-width:19ch;letter-spacing:-.045em!important}
+.premium-hero p{max-width:65ch;font-size:15px;line-height:1.7}
+.eyebrow,.kicker,.kpi-label,.context-label{font-size:10px!important;letter-spacing:.13em!important;font-weight:850!important}
+.dashboard-strip{margin:14px 0 18px!important;border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px 16px!important;gap:12px}
+.dash-context{gap:9px!important;flex-wrap:wrap}
+.premium-kpis{gap:13px!important;margin-bottom:18px}
+.kpi-card,.card,.grid>.card{border:1px solid var(--line)!important;border-radius:15px!important;background:#fff!important;box-shadow:var(--shadow)!important}
+.kpi-card{padding:18px!important;min-width:0}
+.kpi-card .metric{font-size:clamp(22px,2vw,30px)!important;letter-spacing:-.04em;overflow-wrap:anywhere}
+.card{padding:clamp(16px,2vw,23px)!important;margin-bottom:16px}
+.grid{gap:15px!important}
+.grid.g4,.grid.g3,.grid.g2{align-items:stretch}
+.grid.g4>* ,.grid.g3>* ,.grid.g2>*{min-width:0}
+.notice{border-radius:10px!important;padding:13px 16px!important;line-height:1.6}
+button,input,select,textarea{font:inherit}
+button{transition:background .15s ease,border-color .15s ease,transform .15s ease}
+button.primary,.btn{background:var(--accent)!important;border:1px solid var(--accent)!important;border-radius:9px!important;padding:10px 15px!important;color:#fff!important;font-weight:750!important}
+button.primary:hover,.btn:hover{background:#194a39!important;transform:translateY(-1px)}
+button:not(.primary):not(.persona):not(.anvora-sidebar-toggle),.btn.secondary{border-radius:9px}
+input,select,textarea{border:1px solid #ccd8d0!important;border-radius:9px!important;min-height:40px}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:3px solid rgba(64,133,99,.28)!important;outline-offset:2px}
+label{font-size:11px!important;letter-spacing:.025em}
+table{font-size:12px!important;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--line);border-radius:10px}
+th{background:#f4f6f1!important;font-size:10px!important;text-transform:uppercase;letter-spacing:.07em;padding:11px 10px!important}
+td{padding:10px!important;line-height:1.45}
+tr:last-child td{border-bottom:0}
+.pill{font-size:10px!important;letter-spacing:.035em;padding:4px 9px!important}
+.bar{height:8px!important}
+footer{max-width:1360px;margin:0 auto;padding:22px 24px 30px!important;line-height:1.6}
+.anvora-sidebar-toggle{z-index:85!important;box-shadow:0 4px 14px rgba(18,52,42,.12)!important}
+.page .section-head{margin-bottom:14px}
+.page .actions,.page .hero-actions{gap:9px}
+.page .metric{font-variant-numeric:tabular-nums}
+.page pre{max-width:100%;overflow:auto;border-radius:10px;padding:14px;background:#f5f7f3!important;border:1px solid var(--line)}
+.page img,.page svg{max-width:100%}
+.anvora-page-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 16px;padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.82)}
+.anvora-page-tools .anvora-page-caption{font-size:12px;color:var(--muted)}
+.anvora-page-jumps{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.anvora-page-jumps button{background:#f4f6f1;border:1px solid #e3e9e2;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:700;color:#50665a;cursor:pointer}
+.anvora-page-jumps button:hover{background:var(--accent2);color:var(--accent)}
+.anvora-page-intro{margin:0 0 18px}
+.anvora-page-intro h1{margin-bottom:7px}
+.anvora-page-intro p{margin:0;color:var(--muted);font-size:13px;max-width:76ch}
+.anvora-section-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;border:0;background:transparent;padding:0;color:inherit;cursor:pointer}
+.anvora-section-toggle .anvora-toggle-mark{font-size:18px;color:var(--muted);flex:none}
+.anvora-collapsible[hidden]{display:none!important}
+@media(max-width:900px){
+ .anvora-brandbar{padding:9px 14px!important}
+ .anvora-brand-context span{display:none}
+ nav .wrap{padding-left:12px!important;padding-right:12px!important}
+ main.wrap{padding:18px 14px 38px!important}
+ .premium-hero{padding:23px!important}
+ .grid.g4{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:600px){
+ .anvora-brandbar{min-height:60px;gap:8px}
+ .anvora-brand img{width:125px!important}
+ .anvora-brand-context a{max-width:154px;white-space:normal;text-align:center;padding:7px 9px;font-size:10px}
+ nav{top:60px!important}
+ .nav{overflow-x:auto;flex-wrap:nowrap!important}
+ .persona-nav .persona{flex:none}
+ main.wrap{padding:14px 10px 30px!important}
+ .premium-hero{padding:19px!important;border-radius:14px!important}
+ .premium-hero h1{font-size:27px!important}
+ .grid.g4,.grid.g3,.grid.g2{grid-template-columns:minmax(0,1fr)!important}
+ .kpi-card{padding:15px!important}
+ .card{padding:15px!important}
+ table{display:block;overflow-x:auto;white-space:normal}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+</style>
+<script id="anvora-v50-usability-engine">
+(function(){
+ const pageMeta={
+  home:{title:'Overview',desc:'A clear view of project coverage, data quality, climate results and next actions.'},
+  workspace:{title:'Data Workspace',desc:'Import, review and manage seed-lot and plot-level project records.'},
+  synthetic:{title:'Synthetic Data',desc:'Internal testing only. Synthetic records must never be presented as field observations.'},
+  methodology:{title:'Methodology & Disclosure',desc:'Review accounting boundaries, methods, factors and limitations before calculating.'},
+  validation:{title:'Validation & Data Quality',desc:'Identify incomplete, inconsistent or unlinked records before using results.'},
+  control:{title:'Controls & Configuration',desc:'Review the current calculation controls and version settings.'},
+  calculation:{title:'Climate Accounting',desc:'Run and review provisional climate calculations with transparent assumptions.'},
+  remoteEvidence:{title:'Remote Evidence',desc:'Inspect remote-sensing evidence and its provenance. Imagery alone does not prove a farm practice.'},
+  evidence:{title:'Evidence Ledger',desc:'Review evidence records and the traceability supporting each claim.'},
+  uncertainty:{title:'Uncertainty',desc:'Understand limitations, assumptions and uncertainty in calculated outputs.'},
+  mrv:{title:'MRV Readiness',desc:'Assess monitoring, reporting and verification readiness; this is not credit issuance.'},
+  intelligence:{title:'Leadership Intelligence',desc:'Explore decision-support indicators while distinguishing measured data from estimates.'},
+  passport:{title:'Climate Passport',desc:'Review the project summary and supporting disclosures for export or sharing.'},
+  feedback:{title:'Validation Log',desc:'Record observations and review issues during the public beta.'},
+  architecture:{title:'Data Architecture',desc:'Review system components, data flow and integration readiness.'},
+  connectors:{title:'Remote Connectors',desc:'Inspect connector readiness and integration contracts. A catalogue response is not a processed observation.'},
+  auditor:{title:'Auditor / Verifier',desc:'Review traceability, data checks and supporting exports.'},
+  leadership:{title:'Leadership MIS',desc:'Review management indicators, hotspots and items requiring attention.'},
+  farmer:{title:'Farmer Quick Start',desc:'Enter field information for an illustrative, provisional estimate.'}
+ };
+ function safeText(v){return String(v||'').replace(/\s+/g,' ').trim()}
+ function addPageIntro(page){
+  const meta=pageMeta[page.id];
+  if(!meta||page.querySelector('.anvora-page-intro'))return;
+  const first=page.firstElementChild;
+  if(!first)return;
+  const intro=document.createElement('div');
+  intro.className='anvora-page-intro';
+  const h=document.createElement('h1');h.textContent=meta.title;
+  const p=document.createElement('p');p.textContent=meta.desc;
+  intro.append(h,p);
+  page.insertBefore(intro,first);
+ }
+ function addJumpBar(page){
+  if(page.id==='home'||page.querySelector('.anvora-page-tools'))return;
+  const cards=Array.from(page.querySelectorAll(':scope > .card, :scope > .grid, :scope > .notice, :scope > .premium-hero')).filter(el=>!el.closest('section:not(#'+page.id+')'));
+  if(cards.length<4)return;
+  const bar=document.createElement('div');bar.className='anvora-page-tools';
+  const caption=document.createElement('span');caption.className='anvora-page-caption';caption.textContent='On this page';
+  const jumps=document.createElement('div');jumps.className='anvora-page-jumps';
+  cards.slice(0,8).forEach((el,i)=>{
+   let heading=el.querySelector('h2,h3,.kicker,.eyebrow');
+   let label=safeText(heading?heading.textContent:'Section '+(i+1));
+   if(label.length>26)label=label.slice(0,24)+'…';
+   const b=document.createElement('button');b.type='button';b.textContent=label;
+   b.addEventListener('click',()=>el.scrollIntoView({behavior:'smooth',block:'start'}));
+   jumps.appendChild(b);
+  });
+  bar.append(caption,jumps);
+  const intro=page.querySelector('.anvora-page-intro');
+  if(intro)intro.after(bar);else page.insertBefore(bar,page.firstChild);
+ }
+ function init(){
+  document.querySelectorAll('main > .page').forEach(page=>{addPageIntro(page);addJumpBar(page)});
+  const old=window.showPage;
+  if(typeof old==='function'&&!old.__anvoraV50){
+   const wrapped=function(id){const result=old.apply(this,arguments);const page=document.getElementById(id);if(page&&page.classList.contains('page')){addPageIntro(page);addJumpBar(page)}return result};
+   wrapped.__anvoraV50=true;window.showPage=wrapped;
+  }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+ window.addEventListener('load',init);
+})();
+</script>
 </body>
 </html>
